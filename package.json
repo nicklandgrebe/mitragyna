@@ -1,0 +1,46 @@
+{
+  "name": "mitragyna",
+  "version": "0.0.1",
+  "description": "A library for managing ActiveResources as React components",
+  "main": "dist/mitragyna.min.js",
+  "scripts": {
+    "test": "grunt spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicklandgrebe/mitragyna.git"
+  },
+  "keywords": [
+    "react",
+    "active-resource"
+  ],
+  "author": "Nick Landgrebe",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nicklandgrebe/mitragyna/issues"
+  },
+  "homepage": "https://github.com/nicklandgrebe/mitragyna#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-es2015-modules-umd": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "grunt": "0.x.x",
+    "grunt-babel": "^7.0.0",
+    "grunt-contrib-clean": "0.5.x",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-connect": "0.4.x",
+    "grunt-contrib-uglify": "^3.3.0",
+    "grunt-contrib-watch": "0.5.x",
+    "grunt-umd": "^2.4.0",
+    "load-grunt-tasks": "^3.5.2"
+  },
+  "dependencies": {
+    "active-resource": "git://github.com/nicklandgrebe/activeresource.js.git#feature/immutable",
+    "prop-types": "^15.6.0",
+    "react": "^16.2.0",
+    "underscore": "^1.8.3"
+  }
+}
