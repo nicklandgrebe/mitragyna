@@ -26,7 +26,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/mitragyna.min.js': 'src/**/*.jsx'
+          'build/mitragyna.min.js': 'build/mitragyna.jsx'
         }
       },
       specs: {
@@ -49,6 +49,11 @@ module.exports = function(grunt) {
           'dist/mitragyna.js': ['build/mitragyna.js'],
           'dist/mitragyna.min.js': ['build/mitragyna.min.js'],
           'dist/mitragyna.min.js.map': ['build/mitragyna.min.js.map']
+        }
+      },
+      build: {
+        files: {
+          'build/mitragyna.jsx': 'src/**/*.jsx'
         }
       }
     },
@@ -80,7 +85,7 @@ module.exports = function(grunt) {
   grunt.registerTask(
     'build',
     'Creates a build of the library in the build folder, then runs the specs on it.',
-    [ 'babel:build' ]
+    [ 'concat:build', 'babel:build' ]
   );
 
   grunt.registerTask(

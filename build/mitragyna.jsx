@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ActiveResource from 'active-resource';
 import _ from 'underscore';
 
-Mitragyna.Collection = class Collection extends React.PureComponent {
+export class Collection extends React.PureComponent {
   static propTypes = {
     children: PropTypes.oneOfType([
       PropTypes.array,
@@ -113,7 +113,7 @@ Mitragyna.Collection = class Collection extends React.PureComponent {
   }
 }
 
-Mitragyna.ErrorsFor = class ErrorsFor extends React.PureComponent {
+export class ErrorsFor extends React.PureComponent {
   static propTypes = {
     attribute: PropTypes.string,
     resource: PropTypes.object.isRequired,
@@ -138,7 +138,7 @@ Mitragyna.ErrorsFor = class ErrorsFor extends React.PureComponent {
   }
 };
 
-Mitragyna.Input = class Input extends React.PureComponent {
+export class Input extends React.PureComponent {
   static contextTypes = {
     afterUpdate: PropTypes.func,
     inline: PropTypes.bool,
@@ -248,7 +248,7 @@ Mitragyna.Input = class Input extends React.PureComponent {
   }
 }
 
-Mitragyna.Resource = class Resource extends React.PureComponent {
+export class Resource extends React.PureComponent {
   static propTypes = {
     afterUpdate: PropTypes.func,
     children: PropTypes.oneOfType([
