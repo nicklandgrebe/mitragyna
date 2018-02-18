@@ -14,7 +14,7 @@ export class Resource extends React.PureComponent {
 
   static contextTypes = {
     isNestedResource: PropTypes.bool,
-    resourceRoot: PropTypes.object,
+    root: PropTypes.object,
     updateRoot: PropTypes.func,
   };
 
