@@ -39,7 +39,7 @@ export class Input extends React.PureComponent {
     let input = (type === 'select') ? this.createSelectElement() : this.createInputElement();
 
     return React.createElement(inline ? 'span' : 'div', {}, [
-      input, <Mitragyna.ErrorsFor attribute={ name } resource={ resource } key='errors' />
+      input, <ErrorsFor attribute={ name } resource={ resource } key='errors' />
     ]);
   }
 

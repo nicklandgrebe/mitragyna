@@ -32,11 +32,12 @@ export class Collection extends React.PureComponent {
 
     this.state = {
       loading: true,
-      target: Immutable.List()
+      target: ActiveResource.prototype.Collection.build()
     };
 
     _.bindAll(this,
       'buildOnTarget',
+      'cloneTarget',
       'replaceOnTarget',
       'removeFromTarget',
     );
@@ -55,7 +56,9 @@ export class Collection extends React.PureComponent {
 
     let isRelationship = subject.isA(ActiveResource.prototype.Associations.prototype.CollectionProxy);
 
-    let setLoadedTarget = (target) => this.setState({ loading: false, target: Immutable.List(target.toArray()) });
+    let setLoadedTarget = (target) => {
+      this.setState({ loading: false, target })
+    };
 
     if(isRelationship) {
       if(subject.base.loaded()) {
@@ -78,13 +81,23 @@ export class Collection extends React.PureComponent {
   }
 
   replaceOnTarget(newItem, oldItem) {
-    let index = this.state.target.findIndex((i) => i == oldItem);
-    return this.setState({ target: this.state.target.set(index, newItem) });
+    let target = this.cloneTarget();
+
+    target.replace(oldItem, newItem);
+
+    return this.setState({ target });
   }
 
   removeFromTarget(item) {
-    let index = this.state.target.findIndex((i) => i.localId == item.localId);
-    return this.setState({ target: this.state.target.delete(index) });
+    let target = this.cloneTarget();
+
+    target.delete(item);
+
+    return this.setState({ target });
+  }
+
+  cloneTarget() {
+    return this.state.target.clone();
   }
 
   render() {
@@ -98,11 +111,11 @@ export class Collection extends React.PureComponent {
         ) : (
           target.size > 0 ? (
             target.map((t) =>
-              <Mitragyna.Resource subject={ t } key={ t.localId } component= { component }
+              <Resource subject={ t } key={ t.localId } component= { component }
                         className={ rowClassName } inline={ inlineRows }
                         afterUpdate={ this.replaceOnTarget }>
                 { children }
-              </Mitragyna.Resource>
+              </Resource>
             )
           ) : (blankComponent != null &&
             blankComponent()
@@ -179,7 +192,7 @@ export class Input extends React.PureComponent {
     let input = (type === 'select') ? this.createSelectElement() : this.createInputElement();
 
     return React.createElement(inline ? 'span' : 'div', {}, [
-      input, <Mitragyna.ErrorsFor attribute={ name } resource={ resource } key='errors' />
+      input, <ErrorsFor attribute={ name } resource={ resource } key='errors' />
     ]);
   }
 
