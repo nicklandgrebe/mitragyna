@@ -1,4 +1,4 @@
-Mitragyna.Input = class Input extends React.PureComponent {
+export class Input extends React.PureComponent {
   static contextTypes = {
     afterUpdate: PropTypes.func,
     inline: PropTypes.bool,

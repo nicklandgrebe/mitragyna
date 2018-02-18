@@ -1,4 +1,4 @@
-Mitragyna.Resource = class Resource extends React.PureComponent {
+export class Resource extends React.PureComponent {
   static propTypes = {
     afterUpdate: PropTypes.func,
     children: PropTypes.oneOfType([

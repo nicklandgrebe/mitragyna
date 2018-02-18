@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ActiveResource from 'active-resource';
 import _ from 'underscore';
 
-Mitragyna.Collection = class Collection extends React.PureComponent {
+export class Collection extends React.PureComponent {
   static propTypes = {
     children: PropTypes.oneOfType([
       PropTypes.array,

@@ -1,4 +1,4 @@
-Mitragyna.ErrorsFor = class ErrorsFor extends React.PureComponent {
+export class ErrorsFor extends React.PureComponent {
   static propTypes = {
     attribute: PropTypes.string,
     resource: PropTypes.object.isRequired,

@@ -8,12 +8,6 @@ module.exports = function(grunt) {
       dist: {
         src: [ 'dist' ]
       },
-      build: {
-        src: [
-          'build/**/*.js',
-          '!build/mitragyna.js', '!build/mitragyna.min.js'
-        ]
-      },
       specs: {
         src: 'spec/spec.js'
       }
@@ -32,7 +26,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/mitragyna.min.js': 'build/mitragyna.jsx'
+          'build/mitragyna.min.js': 'src/**/*.jsx'
         }
       },
       specs: {
@@ -56,15 +50,6 @@ module.exports = function(grunt) {
           'dist/mitragyna.min.js': ['build/mitragyna.min.js'],
           'dist/mitragyna.min.js.map': ['build/mitragyna.min.js.map']
         }
-      },
-      build: {
-        src: [
-          'src/Collection.jsx',
-          'src/ErrorsFor.jsx',
-          'src/Input.jsx',
-          'src/Resource.jsx'
-        ],
-        dest: 'build/mitragyna.jsx'
       }
     },
     connect: {
@@ -87,12 +72,6 @@ module.exports = function(grunt) {
 
   // define the tasks
   grunt.registerTask(
-    'compile',
-    'Compiles the source files into 1) a raw UMD module file and 2) a minified UMD module file.',
-    [ 'concat:build', 'babel:build', 'clean:build' ]
-  );
-
-  grunt.registerTask(
     'spec',
     'Compiles and runs the Javascript spec files for source code.',
     [ 'clean:specs', 'babel:specs', 'connect:test' ]
@@ -100,14 +79,14 @@ module.exports = function(grunt) {
 
   grunt.registerTask(
     'build',
-    'Creates a temporary build of the library in the build folder, then runs the specs on it.',
-    [ 'clean:build', 'compile' ]
+    'Creates a build of the library in the build folder, then runs the specs on it.',
+    [ 'babel:build' ]
   );
 
   grunt.registerTask(
     'release',
     'Creates a new release of the library in the dist folder',
-    [ 'clean:dist', 'compile', 'concat:release' ]
+    [ 'clean:dist', 'build', 'concat:release' ]
   );
 
   grunt.registerTask(
