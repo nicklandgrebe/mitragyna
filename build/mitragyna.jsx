@@ -75,9 +75,11 @@ export class Collection extends React.PureComponent {
 
   buildOnTarget(attributes) {
     const { subject } = this.props;
-    const { target } = this.state;
+    let target = this.cloneTarget();
 
-    this.setState({ target: target.push(subject.build(attributes)) });
+    target.push(subject.build(attributes));
+
+    this.setState({ target: target });
   }
 
   replaceOnTarget(newItem, oldItem) {
