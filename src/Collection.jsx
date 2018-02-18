@@ -111,7 +111,7 @@ export class Collection extends React.PureComponent {
         { loading ? (
           <span>Loading</span>
         ) : (
-          target.size > 0 ? (
+          target.size() > 0 ? (
             target.map((t) =>
               <Resource subject={ t } key={ t.localId } component= { component }
                         className={ rowClassName } inline={ inlineRows }
