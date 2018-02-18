@@ -118,7 +118,7 @@ export class Collection extends React.PureComponent {
                         afterUpdate={ this.replaceOnTarget }>
                 { children }
               </Resource>
-            )
+            ).toArray()
           ) : (blankComponent != null &&
             blankComponent()
           )
