@@ -303,11 +303,11 @@ export class Resource extends React.PureComponent {
       'afterUpdate',
       'updateRoot'
     );
-  }
 
-  componentWillMount() {
-    const { root } = this.context;
-    const { reflection, subject } = this.props;
+    const { root } = context;
+    const { reflection, subject } = props;
+
+    let state = { resource: subject };
 
     if(reflection) {
       var reflectionInstance = root.reflectOnAssociation(reflection);
@@ -315,13 +315,14 @@ export class Resource extends React.PureComponent {
       var inverseReflection = reflectionInstance.inverseOf();
       if(_.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
 
-      this.setState({
+      state = {
+        ...state,
         inverseReflection,
         reflection: reflectionInstance,
-      });
-    } else {
-      this.setState({ resource: subject });
+      };
     }
+
+    this.state = state;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -380,8 +381,8 @@ export class Resource extends React.PureComponent {
   }
 
   updateRoot(newRoot, fromSave = false) {
-    const { afterUpdate } = this.context;
-    const { resource } = this.props;
+    const { afterUpdate } = this.props;
+    const { resource } = this.state;
 
     this.setState({ resource: newRoot });
 
