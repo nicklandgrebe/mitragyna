@@ -84,7 +84,7 @@ export class Resource extends React.PureComponent {
       afterUpdate: this.afterUpdate,
       inline,
       isNestedResource: true,
-      root: root || this,
+      root: root || resource,
       resource,
       updateRoot: this.updateRoot
     };
