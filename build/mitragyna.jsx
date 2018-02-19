@@ -310,7 +310,7 @@ export class Resource extends React.PureComponent {
     let state = { resource: subject };
 
     if(reflection) {
-      var reflectionInstance = root.reflectOnAssociation(reflection);
+      var reflectionInstance = root.klass().reflectOnAssociation(reflection);
       if(_.isUndefined(reflectionInstance)) throw 'Reflection ' + reflection + ' not found.';
       var inverseReflection = reflectionInstance.inverseOf();
       if(_.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
