@@ -28,7 +28,7 @@ export class Input extends React.PureComponent {
 
     // Set initial value to that of the resources
     this.setState({
-      value: type == 'select' ? this.selectValueFor(resource[name]()) : resource[name]
+      value: type == 'select' ? this.selectValueFor(resource[name]()) : (resource[name] || '')
     });
   }
 
