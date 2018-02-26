@@ -330,11 +330,19 @@ export class Resource extends React.PureComponent {
   }
 
   afterUpdate(newResource) {
-    const { updateRoot } = this.context;
-    const { inverseReflection } = this.state;
+    const { root, updateRoot } = this.context;
+    const { inverseReflection, resource } = this.state;
 
     if(inverseReflection) {
-      updateRoot(newResource.association(inverseReflection.name).target);
+      var oldTarget = resource.association(inverseReflection.name).target;
+      var newTarget = newResource.association(inverseReflection.name).target;
+
+      if(inverseReflection.collection()) {
+        var index = oldTarget.indexOf(root);
+        updateRoot(newTarget.get(index));
+      } else {
+        updateRoot(target);
+      }
     } else {
       this.updateRoot(newResource);
     }
