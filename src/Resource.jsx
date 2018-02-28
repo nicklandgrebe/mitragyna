@@ -7,7 +7,6 @@ export class Resource extends React.PureComponent {
     ]),
     className: PropTypes.string,
     component: PropTypes.func,
-    inline: PropTypes.bool,
     reflection: PropTypes.string,
     subject: PropTypes.object.isRequired,
   };
@@ -20,15 +19,10 @@ export class Resource extends React.PureComponent {
 
   static childContextTypes = {
     afterUpdate: PropTypes.func,
-    inline: PropTypes.bool,
     isNestedResource: PropTypes.bool,
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
-  };
-
-  static defaultProps = {
-    inline: false
   };
 
   constructor(props, context) {
@@ -68,6 +62,7 @@ export class Resource extends React.PureComponent {
     const { root, updateRoot } = this.context;
     const { inverseReflection, resource } = this.state;
 
+    debugger
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
@@ -85,12 +80,10 @@ export class Resource extends React.PureComponent {
 
   getChildContext() {
     const { root } = this.context;
-    const { inline } = this.props;
     const { resource } = this.state;
 
     let childContext = {
       afterUpdate: this.afterUpdate,
-      inline,
       isNestedResource: true,
       root: root || resource,
       resource,
@@ -131,7 +124,9 @@ export class Resource extends React.PureComponent {
 
     if(!_.isUndefined(afterUpdate)) afterUpdate(newRoot, resource);
 
+    debugger;
     if(!fromSave) {
+      debugger;
       newRoot.save((root) => this.updateRoot(root, true));
     }
   }

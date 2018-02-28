@@ -130,40 +130,46 @@ export class Collection extends React.PureComponent {
 
 export class ErrorsFor extends React.PureComponent {
   static propTypes = {
-    attribute: PropTypes.string,
-    resource: PropTypes.object.isRequired,
+    field: PropTypes.string,
+  };
+
+  static contextTypes = {
+    root: PropTypes.object,
   };
 
   render() {
-    const { attribute, resource } = this.props;
+    const { root } = this.context;
+    const { field } = this.props;
 
-    if(_.size(resource.errors().forField(attribute)) < 1) {
+    if(_.size(root.errors().forField(field)) < 1) {
       return null;
     }
 
     return(
-      <p className='dark-red f6 mt2 mb0'>
+      <summary>
         {
-          _.map(resource.errors().forField(attribute),
-            (message, code) => <span key={ code } className='db'>{ message }</span>
+          _.map(root.errors().forField(field),
+            (message, code) => <p key={ code }>{ message }</p>
           )
         }
-      </p>
+      </summary>
     );
   }
 };
 
-export class Input extends React.PureComponent {
+export class Field extends React.PureComponent {
   static contextTypes = {
     afterUpdate: PropTypes.func,
-    inline: PropTypes.bool,
     resource: PropTypes.object,
   };
 
   static propTypes = {
+    component: PropTypes.func,
     includeBlank: PropTypes.bool,
+    name: PropTypes.string.isRequired,
     options: PropTypes.array,
     optionsLabelKey: PropTypes.string,
+    type: PropTypes.string.isRequired,
   };
 
   constructor() {
@@ -187,22 +193,30 @@ export class Input extends React.PureComponent {
     });
   }
 
+  componentWillReceiveProps(nextProps, nextContext) {
+    const { name, type } = nextProps;
+    const { resource } = nextContext;
+
+    this.setState({
+      value: type == 'select' ? this.selectValueFor(resource[name]()) : (resource[name] || '')
+    });
+  }
+
   render() {
     const { name, type } = this.props;
-    const { inline, resource } = this.context;
+    const { resource } = this.context;
 
-    let input = (type === 'select') ? this.createSelectElement() : this.createInputElement();
-
-    return React.createElement(inline ? 'span' : 'div', {}, [
-      input, <ErrorsFor attribute={ name } resource={ resource } key='errors' />
-    ]);
+    return (type === 'select') ? this.createSelectElement() : this.createInputElement();
   }
 
   createInputElement() {
-    const { name } = this.props;
+    const { component, name } = this.props;
 
-    return React.createElement('input', {
-      ...this.props,
+    let inputProps = _.omit(this.props, _.keys(Field.propTypes));
+
+    let finalComponent = component || 'input';
+    return React.createElement(finalComponent, {
+      ...inputProps,
       key: name,
       onBlur: this.handleUpdate,
       onChange: this.handleChange,
@@ -216,7 +230,7 @@ export class Input extends React.PureComponent {
   }
 
   createSelectElement() {
-    const { includeBlank, name, options, optionsLabelKey } = this.props;
+    const { component, includeBlank, name, options, optionsLabelKey } = this.props;
 
     let selectOptions = null;
     if (options.isEmpty()) {
@@ -228,9 +242,10 @@ export class Input extends React.PureComponent {
       }
     }
 
-    let selectProps = _.omit(this.props, _.keys(Input.propTypes));
+    let selectProps = _.omit(this.props, _.keys(Field.propTypes));
 
-    return React.createElement('select', {
+    let finalComponent = component || 'select';
+    return React.createElement(finalComponent, {
       ...selectProps,
       key: name,
       onBlur: this.handleUpdate,
@@ -272,7 +287,6 @@ export class Resource extends React.PureComponent {
     ]),
     className: PropTypes.string,
     component: PropTypes.func,
-    inline: PropTypes.bool,
     reflection: PropTypes.string,
     subject: PropTypes.object.isRequired,
   };
@@ -285,15 +299,10 @@ export class Resource extends React.PureComponent {
 
   static childContextTypes = {
     afterUpdate: PropTypes.func,
-    inline: PropTypes.bool,
     isNestedResource: PropTypes.bool,
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
-  };
-
-  static defaultProps = {
-    inline: false
   };
 
   constructor(props, context) {
@@ -333,6 +342,7 @@ export class Resource extends React.PureComponent {
     const { root, updateRoot } = this.context;
     const { inverseReflection, resource } = this.state;
 
+    debugger
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
@@ -350,12 +360,10 @@ export class Resource extends React.PureComponent {
 
   getChildContext() {
     const { root } = this.context;
-    const { inline } = this.props;
     const { resource } = this.state;
 
     let childContext = {
       afterUpdate: this.afterUpdate,
-      inline,
       isNestedResource: true,
       root: root || resource,
       resource,
@@ -396,7 +404,9 @@ export class Resource extends React.PureComponent {
 
     if(!_.isUndefined(afterUpdate)) afterUpdate(newRoot, resource);
 
+    debugger;
     if(!fromSave) {
+      debugger;
       newRoot.save((root) => this.updateRoot(root, true));
     }
   }

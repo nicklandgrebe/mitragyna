@@ -1,14 +1,16 @@
-export class Input extends React.PureComponent {
+export class Field extends React.PureComponent {
   static contextTypes = {
     afterUpdate: PropTypes.func,
-    inline: PropTypes.bool,
     resource: PropTypes.object,
   };
 
   static propTypes = {
+    component: PropTypes.func,
     includeBlank: PropTypes.bool,
+    name: PropTypes.string.isRequired,
     options: PropTypes.array,
     optionsLabelKey: PropTypes.string,
+    type: PropTypes.string.isRequired,
   };
 
   constructor() {
@@ -32,22 +34,30 @@ export class Input extends React.PureComponent {
     });
   }
 
+  componentWillReceiveProps(nextProps, nextContext) {
+    const { name, type } = nextProps;
+    const { resource } = nextContext;
+
+    this.setState({
+      value: type == 'select' ? this.selectValueFor(resource[name]()) : (resource[name] || '')
+    });
+  }
+
   render() {
     const { name, type } = this.props;
-    const { inline, resource } = this.context;
+    const { resource } = this.context;
 
-    let input = (type === 'select') ? this.createSelectElement() : this.createInputElement();
-
-    return React.createElement(inline ? 'span' : 'div', {}, [
-      input, <ErrorsFor attribute={ name } resource={ resource } key='errors' />
-    ]);
+    return (type === 'select') ? this.createSelectElement() : this.createInputElement();
   }
 
   createInputElement() {
-    const { name } = this.props;
+    const { component, name } = this.props;
 
-    return React.createElement('input', {
-      ...this.props,
+    let inputProps = _.omit(this.props, _.keys(Field.propTypes));
+
+    let finalComponent = component || 'input';
+    return React.createElement(finalComponent, {
+      ...inputProps,
       key: name,
       onBlur: this.handleUpdate,
       onChange: this.handleChange,
@@ -61,7 +71,7 @@ export class Input extends React.PureComponent {
   }
 
   createSelectElement() {
-    const { includeBlank, name, options, optionsLabelKey } = this.props;
+    const { component, includeBlank, name, options, optionsLabelKey } = this.props;
 
     let selectOptions = null;
     if (options.isEmpty()) {
@@ -73,9 +83,10 @@ export class Input extends React.PureComponent {
       }
     }
 
-    let selectProps = _.omit(this.props, _.keys(Input.propTypes));
+    let selectProps = _.omit(this.props, _.keys(Field.propTypes));
 
-    return React.createElement('select', {
+    let finalComponent = component || 'select';
+    return React.createElement(finalComponent, {
       ...selectProps,
       key: name,
       onBlur: this.handleUpdate,

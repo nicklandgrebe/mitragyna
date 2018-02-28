@@ -1,24 +1,28 @@
 export class ErrorsFor extends React.PureComponent {
   static propTypes = {
-    attribute: PropTypes.string,
-    resource: PropTypes.object.isRequired,
+    field: PropTypes.string,
+  };
+
+  static contextTypes = {
+    root: PropTypes.object,
   };
 
   render() {
-    const { attribute, resource } = this.props;
+    const { root } = this.context;
+    const { field } = this.props;
 
-    if(_.size(resource.errors().forField(attribute)) < 1) {
+    if(_.size(root.errors().forField(field)) < 1) {
       return null;
     }
 
     return(
-      <p className='dark-red f6 mt2 mb0'>
+      <summary>
         {
-          _.map(resource.errors().forField(attribute),
-            (message, code) => <span key={ code } className='db'>{ message }</span>
+          _.map(root.errors().forField(field),
+            (message, code) => <p key={ code }>{ message }</p>
           )
         }
-      </p>
+      </summary>
     );
   }
 };
