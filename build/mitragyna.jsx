@@ -383,7 +383,7 @@ export class Resource extends React.PureComponent {
 
     let body = null;
     if(component) {
-      body = React.createElement(component, { subject: resource });
+      body = React.createElement(component, { afterUpdate: this.afterUpdate, subject: resource });
     } else {
       body = children;
     }
