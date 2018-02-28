@@ -287,6 +287,7 @@ export class Resource extends React.PureComponent {
     ]),
     className: PropTypes.string,
     component: PropTypes.func,
+    componentProps: PropTypes.object,
     reflection: PropTypes.string,
     subject: PropTypes.object.isRequired,
   };
@@ -303,6 +304,10 @@ export class Resource extends React.PureComponent {
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
+  };
+
+  static defaultProps = {
+    componentProps: {}
   };
 
   constructor(props, context) {
@@ -378,12 +383,16 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { children, className, component } = this.props;
+    const { children, className, component, componentProps } = this.props;
     const { resource } = this.state;
 
     let body = null;
     if(component) {
-      body = React.createElement(component, { afterUpdate: this.afterUpdate, subject: resource });
+      body = React.createElement(component, {
+        ...componentProps,
+        afterUpdate: this.afterUpdate,
+        subject: resource
+      });
     } else {
       body = children;
     }
