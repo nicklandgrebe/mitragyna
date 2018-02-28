@@ -58,11 +58,14 @@ export class Resource extends React.PureComponent {
     this.setState({ resource: nextProps.subject });
   }
 
+  componentDidCatch(error) {
+    return <p>{ error }</p>;
+  }
+
   afterUpdate(newResource) {
     const { root, updateRoot } = this.context;
     const { inverseReflection, resource } = this.state;
 
-    debugger
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
@@ -124,9 +127,7 @@ export class Resource extends React.PureComponent {
 
     if(!_.isUndefined(afterUpdate)) afterUpdate(newRoot, resource);
 
-    debugger;
     if(!fromSave) {
-      debugger;
       newRoot.save((root) => this.updateRoot(root, true));
     }
   }
