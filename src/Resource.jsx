@@ -36,6 +36,7 @@ export class Resource extends React.PureComponent {
 
     _.bindAll(this,
       'afterUpdate',
+      'handleSubmit',
       'updateRoot'
     );
 
@@ -102,9 +103,19 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
+  handleSubmit(e) {
+    const { onSubmit } = this.props;
+    const { resource } = this.state;
+
+    if(!_.isUndefined(onSubmit)) {
+      e.preventDefault();
+      onSubmit(resource);
+    }
+  }
+
   render() {
     const { isNestedResource } = this.context;
-    const { children, className, component, componentProps, onSubmit } = this.props;
+    const { children, className, component, componentProps } = this.props;
     const { resource } = this.state;
 
     let body = null;
@@ -119,10 +130,7 @@ export class Resource extends React.PureComponent {
     }
 
     if(!isNestedResource) {
-      let formProps = {};
-      if(onSubmit !== undefined) formProps = { onSubmit };
-
-      body = <form {...formProps}>{ body }</form>;
+      body = <form onSubmit={ this.handleSubmit }>{ body }</form>;
     }
 
     return (
