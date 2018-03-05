@@ -358,8 +358,12 @@ export class Resource extends React.PureComponent {
       var newTarget = newResource.association(inverseReflection.name).target;
 
       if(inverseReflection.collection()) {
-        var index = oldTarget.indexOf(root);
-        updateRoot(newTarget.get(index));
+        // FIXME: Allow autosave inverseOf collection to appropriately handle multiple resources in the collection,
+        //   not just the first. If changing multiple fields of resource quickly, root may not be found in oldTarget
+        //   because it has already been replaced by a previous change
+        // var index = oldTarget.indexOf(root);
+        // var newRoot = newTarget.get(index);
+        updateRoot(newTarget.first());
       } else {
         updateRoot(target);
       }
