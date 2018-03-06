@@ -208,15 +208,13 @@ export class Field extends React.PureComponent {
 
   // TODO: Add support for non-resource options on select and radio
   valueFor(type, resource, name) {
-    var val = resource[name];
-
     switch(type) {
       case 'radio':
       case 'select':
-        val = val();
+        var val = resource[name]();
         return _.isNull(val) ? '' : val.id;
       default:
-        return val || '';
+        return resource[name] || '';
     }
   }
 
