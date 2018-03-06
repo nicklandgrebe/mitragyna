@@ -430,7 +430,7 @@ export class Resource extends React.PureComponent {
         // var newRoot = newTarget.get(index);
         updateRoot(newTarget.first());
       } else {
-        updateRoot(target);
+        updateRoot(newTarget);
       }
     } else {
       this.updateRoot(newResource);
