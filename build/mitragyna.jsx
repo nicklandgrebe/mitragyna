@@ -164,19 +164,25 @@ export class Field extends React.PureComponent {
     component: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
-    options: PropTypes.array,
+    options: PropTypes.instanceOf(ActiveResource.Collection),
     optionsLabelKey: PropTypes.string,
     type: PropTypes.string.isRequired,
+    value: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.string,
+      PropTypes.number,
+    ])
   };
 
   constructor() {
     super();
 
     _.bindAll(this,
-      'createInputElement',
-      'createSelectElement',
       'handleChange',
       'handleUpdate',
+      'renderInputComponent',
+      'renderRadioComponent',
+      'renderSelectComponent',
     );
   }
 
@@ -186,7 +192,7 @@ export class Field extends React.PureComponent {
 
     // Set initial value to that of the resources
     this.setState({
-      value: type == 'select' ? this.selectValueFor(resource[name]()) : (resource[name] || '')
+      value: this.valueFor(type, resource, name)
     });
   }
 
@@ -195,18 +201,42 @@ export class Field extends React.PureComponent {
     const { resource } = nextContext;
 
     this.setState({
-      value: type == 'select' ? this.selectValueFor(resource[name]()) : (resource[name] || '')
+      value: this.valueFor(type, resource, name)
     });
   }
 
-  render() {
-    const { name, type } = this.props;
-    const { resource } = this.context;
+  // TODO: Add support for non-resource options on select and radio
+  valueFor(type, resource, name) {
+    var val = resource[name];
 
-    return (type === 'select') ? this.createSelectElement() : this.createInputElement();
+    switch(type) {
+      case 'radio':
+      case 'select':
+        val = val();
+        return _.isNull(val) ? '' : val.id;
+      default:
+        return val || '';
+    }
   }
 
-  createInputElement() {
+  componentFor(type) {
+    switch(type) {
+      case 'radio':
+        return this.renderRadioComponent();
+      case 'select':
+        return this.renderSelectComponent();
+      default:
+        return this.renderInputComponent();
+    }
+  }
+
+  render() {
+    const { type } = this.props;
+
+    return this.componentFor(type);
+  }
+
+  renderInputComponent() {
     const { component, name } = this.props;
 
     let inputProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
@@ -221,12 +251,28 @@ export class Field extends React.PureComponent {
     });
   }
 
-  // TODO: Add support for non-resource options
-  selectValueFor(resource) {
-    return resource && resource.id || '';
+  renderRadioComponent() {
+    const { component, name, value } = this.props;
+    const { value: fieldValue } = this.state;
+
+    if (_.isUndefined(value)) {
+      throw 'Input type="radio" must have prop "value"';
+    }
+
+    let radioProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
+
+    let finalComponent = component || 'input';
+    return React.createElement(finalComponent, {
+      ...radioProps,
+      checked: value.id == fieldValue,
+      key: name,
+      onBlur: this.handleUpdate,
+      onChange: this.handleChange,
+      value: value.id,
+    });
   }
 
-  createSelectElement() {
+  renderSelectComponent() {
     const { component, includeBlank, name, options, optionsLabelKey } = this.props;
 
     let selectOptions = null;
@@ -249,7 +295,7 @@ export class Field extends React.PureComponent {
       onBlur: this.handleUpdate,
       onChange: this.handleChange,
       value: this.state.value,
-    }, selectOptions);
+    }, selectOptions.toArray());
   }
 
   handleChange(e) {
@@ -264,15 +310,20 @@ export class Field extends React.PureComponent {
     e.persist();
 
     const { afterUpdate, resource } = this.context;
-    const { name, type, options } = this.props;
+    const { name, type, options, value } = this.props;
 
-    var value = e.target.value;
+    var newValue = e.target.value;
 
-    if(type === 'select') {
-      value = options.find((o) => o.id === value);
+    switch(type) {
+      case 'radio':
+        newValue = value;
+        break;
+      case 'select':
+        newValue = options.detect((o) => o.id === newValue);
+        break;
     }
 
-    afterUpdate(resource.assignAttributes({ [name]: value }));
+    afterUpdate(resource.assignAttributes({ [name]: newValue }));
   }
 }
 
