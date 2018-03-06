@@ -277,7 +277,7 @@ export class Field extends React.PureComponent {
     const { component, includeBlank, name, options, optionsLabelKey } = this.props;
 
     let selectOptions = null;
-    if (options.isEmpty()) {
+    if (options.empty()) {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => <option key={o.localId} value={o.id}>{o[optionsLabelKey]}</option>);
