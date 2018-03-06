@@ -27,6 +27,7 @@ export class Field extends React.PureComponent {
       'renderInputComponent',
       'renderRadioComponent',
       'renderSelectComponent',
+      'renderTextareaComponent',
     );
   }
 
@@ -69,6 +70,8 @@ export class Field extends React.PureComponent {
         return this.renderRadioComponent();
       case 'select':
         return this.renderSelectComponent();
+      case 'textarea':
+        return this.renderTextareaComponent();
       default:
         return this.renderInputComponent();
     }
@@ -140,6 +143,21 @@ export class Field extends React.PureComponent {
       onChange: this.handleChange,
       value: this.state.value,
     }, selectOptions.toArray());
+  }
+
+  renderTextareaComponent() {
+    const { component, name } = this.props;
+
+    let textareaProps = _.omit(this.props, _.keys(Field.propTypes));
+
+    let finalComponent = component || 'textarea';
+    return React.createElement(finalComponent, {
+      ...textareaProps,
+      key: name,
+      onBlur: this.handleUpdate,
+      onChange: this.handleChange,
+      value: this.state.value,
+    });
   }
 
   handleChange(e) {
