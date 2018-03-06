@@ -12,8 +12,6 @@ export class Collection extends React.PureComponent {
     className: PropTypes.string,
     blankComponent: PropTypes.func,
     component: PropTypes.func,
-    inlineRows: PropTypes.bool,
-    rowClassName: PropTypes.string,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
@@ -103,7 +101,7 @@ export class Collection extends React.PureComponent {
   }
 
   render() {
-    const { blankComponent, children, className, component, inlineRows, rowClassName } = this.props;
+    const { blankComponent, children, className, component } = this.props;
     const { loading, target } = this.state;
 
     return (
@@ -114,7 +112,6 @@ export class Collection extends React.PureComponent {
           target.size() > 0 ? (
             target.map((t) =>
               <Resource subject={ t } key={ t.localId } component= { component }
-                        className={ rowClassName } inline={ inlineRows }
                         afterUpdate={ this.replaceOnTarget }>
                 { children }
               </Resource>
@@ -212,7 +209,7 @@ export class Field extends React.PureComponent {
   createInputElement() {
     const { component, name } = this.props;
 
-    let inputProps = _.omit(this.props, _.keys(Field.propTypes));
+    let inputProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
 
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
@@ -242,7 +239,8 @@ export class Field extends React.PureComponent {
       }
     }
 
-    let selectProps = _.omit(this.props, _.keys(Field.propTypes));
+    let omittedKeys = component ? _.omit(Field.propTypes, 'type') : Field.propTypes;
+    let selectProps = _.omit(this.props, _.keys(omittedKeys));
 
     let finalComponent = component || 'select';
     return React.createElement(finalComponent, {
