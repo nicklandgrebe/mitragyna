@@ -198,7 +198,7 @@ export class Field extends React.PureComponent {
 
     // Set initial value to that of the resources
     this.setState({
-      value: this.valueFor(resource, props)
+      value: this.valueFor(resource, this.props)
     });
   }
 
