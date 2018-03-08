@@ -11,6 +11,11 @@ export class Field extends React.PureComponent {
     options: PropTypes.instanceOf(ActiveResource.Collection),
     optionsLabelKey: PropTypes.string,
     type: PropTypes.string.isRequired,
+    uncheckedValue: PropTypes.oneOfType([
+      PropTypes.func,
+      PropTypes.string,
+      PropTypes.number,
+    ]),
     value: PropTypes.oneOfType([
       PropTypes.func,
       PropTypes.string,
@@ -24,35 +29,44 @@ export class Field extends React.PureComponent {
     _.bindAll(this,
       'handleChange',
       'handleUpdate',
+      'renderCheckboxComponent',
       'renderInputComponent',
       'renderRadioComponent',
       'renderSelectComponent',
-      'renderTextareaComponent',
+      'renderTextareaComponent'
     );
   }
 
   componentWillMount() {
-    const { name, type } = this.props;
     const { resource } = this.context;
 
     // Set initial value to that of the resources
     this.setState({
-      value: this.valueFor(type, resource, name)
+      value: this.valueFor(resource, props)
     });
   }
 
   componentWillReceiveProps(nextProps, nextContext) {
-    const { name, type } = nextProps;
     const { resource } = nextContext;
 
     this.setState({
-      value: this.valueFor(type, resource, name)
+      value: this.valueFor(resource, nextProps)
     });
   }
 
   // TODO: Add support for non-resource options on select and radio
-  valueFor(type, resource, name) {
+  valueFor(resource, props) {
+    const { name, type, uncheckedValue, value } = props;
+
     switch(type) {
+      case 'checkbox':
+        if(resource[name] == value) {
+          return true;
+        } else if(resource[name] == uncheckedValue) {
+          return false;
+        } else {
+          throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
+        }
       case 'radio':
       case 'select':
         var val = resource[name]();
@@ -64,6 +78,8 @@ export class Field extends React.PureComponent {
 
   componentFor(type) {
     switch(type) {
+      case 'checkbox':
+        return this.renderCheckboxComponent();
       case 'radio':
         return this.renderRadioComponent();
       case 'select':
@@ -79,6 +95,21 @@ export class Field extends React.PureComponent {
     const { type } = this.props;
 
     return this.componentFor(type);
+  }
+
+  renderCheckboxComponent() {
+    const { component, name } = this.props;
+
+    let checkboxProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
+
+    let finalComponent = component || 'input';
+    return React.createElement(finalComponent, {
+      ...checkboxProps,
+      key: name,
+      onBlur: this.handleUpdate,
+      onChange: this.handleChange,
+      checked: this.state.value,
+    });
   }
 
   renderInputComponent() {
@@ -146,7 +177,7 @@ export class Field extends React.PureComponent {
   renderTextareaComponent() {
     const { component, name } = this.props;
 
-    let textareaProps = _.omit(this.props, _.keys(Field.propTypes));
+    let textareaProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
 
     let finalComponent = component || 'textarea';
     return React.createElement(finalComponent, {
@@ -170,11 +201,18 @@ export class Field extends React.PureComponent {
     e.persist();
 
     const { afterUpdate, resource } = this.context;
-    const { name, type, options, value } = this.props;
+    const { name, type, options, uncheckedValue, value } = this.props;
 
     var newValue = e.target.value;
 
     switch(type) {
+      case 'checkbox':
+        if(e.target.checked) {
+          newValue = value;
+        } else {
+          newValue = uncheckedValue;
+        }
+        break;
       case 'radio':
         newValue = value;
         break;
