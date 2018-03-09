@@ -193,9 +193,19 @@ export class Field extends React.PureComponent {
   handleChange(e) {
     e.persist();
 
-    this.setState({
-      value: e.target.value
-    });
+    const { type } = this.props;
+
+    let value;
+
+    switch(type) {
+      case 'checkbox':
+        value = e.target.checked;
+        break;
+      default:
+        value = e.target.value;
+    }
+
+    this.setState({ value });
   }
 
   handleUpdate(e) {
