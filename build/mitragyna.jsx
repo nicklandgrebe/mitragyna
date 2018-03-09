@@ -216,9 +216,10 @@ export class Field extends React.PureComponent {
 
     switch(type) {
       case 'checkbox':
-        if(resource[name] == value) {
+        var resourceValue = resource[name];
+        if(resourceValue == value) {
           return true;
-        } else if(resource[name] == uncheckedValue) {
+        } else if(resourceValue == uncheckedValue || _.isUndefined(resourceValue) || _.isNull(resourceValue)) {
           return false;
         } else {
           throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
