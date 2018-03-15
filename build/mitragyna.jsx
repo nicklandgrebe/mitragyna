@@ -168,11 +168,13 @@ export class Field extends React.PureComponent {
     optionsLabelKey: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
+      PropTypes.object,
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
     ]),
     value: PropTypes.oneOfType([
+      PropTypes.object,
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
@@ -314,7 +316,7 @@ export class Field extends React.PureComponent {
     } else {
       selectOptions = options.map((o) => <option key={o.localId} value={o.id}>{o[optionsLabelKey]}</option>);
       if (includeBlank) {
-        selectOptions = selectOptions.unshift(<option key={-1} value=''></option>);
+        selectOptions.unshift(<option key={-1} value=''></option>);
       }
     }
 
@@ -502,12 +504,21 @@ export class Resource extends React.PureComponent {
   }
 
   handleSubmit(e) {
+    e.preventDefault();
+
     const { onSubmit } = this.props;
     const { resource } = this.state;
 
-    if(!_.isUndefined(onSubmit)) {
-      e.preventDefault();
-      onSubmit(resource);
+    var onSubmitCallback = (resourceToSubmit) => {
+      if(!_.isUndefined(onSubmit)) {
+        onSubmit(resourceToSubmit);
+      }
+    };
+
+    if(!_.isUndefined(this.componentRef.beforeSubmit)) {
+      Promise.resolve(this.componentRef.beforeSubmit(resource)).then(onSubmitCallback)
+    } else {
+      onSubmitCallback(resource);
     }
   }
 
@@ -521,7 +532,8 @@ export class Resource extends React.PureComponent {
       body = React.createElement(component, {
         ...componentProps,
         afterUpdate: this.afterUpdate,
-        subject: resource
+        subject: resource,
+        ref: (c) => { this.componentRef = c }
       });
     } else {
       body = children;

@@ -108,12 +108,21 @@ export class Resource extends React.PureComponent {
   }
 
   handleSubmit(e) {
+    e.preventDefault();
+
     const { onSubmit } = this.props;
     const { resource } = this.state;
 
-    if(!_.isUndefined(onSubmit)) {
-      e.preventDefault();
-      onSubmit(resource);
+    var onSubmitCallback = (resourceToSubmit) => {
+      if(!_.isUndefined(onSubmit)) {
+        onSubmit(resourceToSubmit);
+      }
+    };
+
+    if(!_.isUndefined(this.componentRef.beforeSubmit)) {
+      Promise.resolve(this.componentRef.beforeSubmit(resource)).then(onSubmitCallback)
+    } else {
+      onSubmitCallback(resource);
     }
   }
 
@@ -127,7 +136,8 @@ export class Resource extends React.PureComponent {
       body = React.createElement(component, {
         ...componentProps,
         afterUpdate: this.afterUpdate,
-        subject: resource
+        subject: resource,
+        ref: (c) => { this.componentRef = c }
       });
     } else {
       body = children;

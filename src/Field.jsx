@@ -12,11 +12,13 @@ export class Field extends React.PureComponent {
     optionsLabelKey: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
+      PropTypes.object,
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
     ]),
     value: PropTypes.oneOfType([
+      PropTypes.object,
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
@@ -158,7 +160,7 @@ export class Field extends React.PureComponent {
     } else {
       selectOptions = options.map((o) => <option key={o.localId} value={o.id}>{o[optionsLabelKey]}</option>);
       if (includeBlank) {
-        selectOptions = selectOptions.unshift(<option key={-1} value=''></option>);
+        selectOptions.unshift(<option key={-1} value=''></option>);
       }
     }
 
