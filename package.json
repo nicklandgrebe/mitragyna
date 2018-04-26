@@ -38,9 +38,10 @@
     "load-grunt-tasks": "^3.5.2"
   },
   "dependencies": {
-    "active-resource": "git://github.com/nicklandgrebe/activeresource.js.git#feature/immutable",
+    "classnames": "^2.2.5",
     "prop-types": "^15.6.0",
     "react": "^16.2.0",
+    "shallowequal": "^1.0.2",
     "underscore": "^1.8.3"
   }
 }
