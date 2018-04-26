@@ -1,28 +1,35 @@
-export class ErrorsFor extends React.PureComponent {
+export class ErrorsFor extends React.Component {
   static propTypes = {
+    component: PropTypes.func,
     field: PropTypes.string,
   };
 
   static contextTypes = {
-    root: PropTypes.object,
+    resource: PropTypes.object,
   };
 
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
+  }
+
   render() {
-    const { root } = this.context;
-    const { field } = this.props;
+    const { resource } = this.context;
+    const { component, field } = this.props;
 
-    if(_.size(root.errors().forField(field)) < 1) {
-      return null;
-    }
+    var errors = resource.errors().forField(field);
 
-    return(
-      <summary>
-        {
-          _.map(root.errors().forField(field),
-            (message, code) => <p key={ code }>{ message }</p>
-          )
-        }
-      </summary>
+    if(errors.empty()) return null;
+
+    let customProps = _.omit(this.props, _.keys(ErrorsFor.propTypes));
+
+    let finalComponent = component || 'summary';
+    return React.createElement(finalComponent, {
+      ...customProps,
+      key: field,
+    },
+      errors.map((error) => {
+        return <span key={ error.code }>{ error.message }</span>
+      }).toArray()
     );
   }
 };

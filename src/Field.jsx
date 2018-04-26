@@ -1,12 +1,14 @@
+import classNames from 'classnames';
 import shallowEqual from 'shallowequal';
 
-export class Field extends React.PureComponent {
+export class Field extends React.Component {
   static contextTypes = {
     afterUpdate: PropTypes.func,
     resource: PropTypes.object,
   };
 
   static propTypes = {
+    className: PropTypes.string,
     component: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
@@ -19,6 +21,7 @@ export class Field extends React.PureComponent {
       PropTypes.string,
       PropTypes.number,
     ]),
+    invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
@@ -31,6 +34,8 @@ export class Field extends React.PureComponent {
     super();
 
     _.bindAll(this,
+      'classNames',
+      'commonInputProps',
       'handleChange',
       'handleUpdate',
       'renderCheckboxComponent',
@@ -62,26 +67,26 @@ export class Field extends React.PureComponent {
     });
   }
 
-  // TODO: Add support for non-resource options on select and radio
-  valueFor(resource, props) {
-    const { name, type, uncheckedValue, value } = props;
+  classNames() {
+    const { className, invalidClassName, name } = this.props;
+    const { resource } = this.context;
 
-    switch(type) {
-      case 'checkbox':
-        var resourceValue = resource[name];
-        if(resourceValue == value) {
-          return true;
-        } else if(resourceValue == uncheckedValue || _.isUndefined(resourceValue) || _.isNull(resourceValue)) {
-          return false;
-        } else {
-          throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
-        }
-      case 'radio':
-      case 'select':
-        var val = resource[name]();
-        return _.isNull(val) ? '' : val.id;
-      default:
-        return resource[name] || '';
+    return classNames(
+      className,
+      {
+        [invalidClassName]: !resource.errors().forField(name).empty()
+      }
+    );
+  }
+
+  commonInputProps() {
+    const { name } = this.props;
+
+    return {
+      className: this.classNames(),
+      key: name,
+      onBlur: this.handleUpdate,
+      onChange: this.handleChange,
     }
   }
 
@@ -100,6 +105,30 @@ export class Field extends React.PureComponent {
     }
   }
 
+  // TODO: Add support for non-resource options on select and radio
+  valueFor(resource, props) {
+    const { name, type, uncheckedValue, value } = props;
+
+    switch(type) {
+      case 'checkbox':
+        var resourceValue = resource[name];
+        if(resourceValue == value) {
+          return true;
+        } else if(resourceValue == uncheckedValue || _.isUndefined(resourceValue) || _.isNull(resourceValue)) {
+          return false;
+        } else {
+          throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
+        }
+      case 'radio':
+      case 'select':
+        var val = resource[name]();
+        return val ? val.id : '';
+      default:
+        var val = resource[name];
+        return (!_.isUndefined(val) && !_.isNull(val)) ? resource[name] : '';
+    }
+  }
+
   render() {
     const { type } = this.props;
 
@@ -114,9 +143,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...checkboxProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       checked: this.state.value,
     });
   }
@@ -129,9 +156,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...inputProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     });
   }
@@ -149,10 +174,8 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...radioProps,
+      ...this.commonInputProps(),
       checked: value.id == fieldValue,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
       value: value.id,
     });
   }
@@ -176,9 +199,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'select';
     return React.createElement(finalComponent, {
       ...selectProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     }, selectOptions.toArray());
   }
@@ -191,9 +212,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'textarea';
     return React.createElement(finalComponent, {
       ...textareaProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     });
   }
