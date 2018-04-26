@@ -12,10 +12,12 @@ export class Collection extends React.PureComponent {
     className: PropTypes.string,
     blankComponent: PropTypes.func,
     component: PropTypes.func,
+    componentProps: PropTypes.object,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
     ]).isRequired,
+    reflection: PropTypes.string,
   };
 
   static defaultProps = {
@@ -101,7 +103,7 @@ export class Collection extends React.PureComponent {
   }
 
   render() {
-    const { blankComponent, children, className, component } = this.props;
+    const { blankComponent, children, className, component, componentProps, reflection } = this.props;
     const { loading, target } = this.state;
 
     return (
@@ -110,9 +112,14 @@ export class Collection extends React.PureComponent {
           <span>Loading</span>
         ) : (
           target.size() > 0 ? (
-            target.map((t) =>
-              <Resource subject={ t } key={ t.localId } component= { component }
-                        afterUpdate={ this.replaceOnTarget }>
+            target.map((t, index) =>
+              <Resource afterUpdate={ this.replaceOnTarget }
+                        component= { component } componentProps={ componentProps }
+                        key={ t.id || (t.klass().className + '-' + index) }
+                        reflection={reflection}
+                        subject={ t }>
+
+
                 { children }
               </Resource>
             ).toArray()
@@ -125,47 +132,61 @@ export class Collection extends React.PureComponent {
   }
 }
 
-export class ErrorsFor extends React.PureComponent {
+export class ErrorsFor extends React.Component {
   static propTypes = {
+    component: PropTypes.func,
     field: PropTypes.string,
   };
 
   static contextTypes = {
-    root: PropTypes.object,
+    resource: PropTypes.object,
   };
 
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
+  }
+
   render() {
-    const { root } = this.context;
-    const { field } = this.props;
+    const { resource } = this.context;
+    const { component, field } = this.props;
 
-    if(_.size(root.errors().forField(field)) < 1) {
-      return null;
-    }
+    var errors = resource.errors().forField(field);
 
-    return(
-      <summary>
-        {
-          _.map(root.errors().forField(field),
-            (message, code) => <p key={ code }>{ message }</p>
-          )
-        }
-      </summary>
+    if(errors.empty()) return null;
+
+    let customProps = _.omit(this.props, _.keys(ErrorsFor.propTypes));
+
+    let finalComponent = component || 'summary';
+    return React.createElement(finalComponent, {
+      ...customProps,
+      key: field,
+    },
+      errors.map((error) => {
+        return <span key={ error.code }>{ error.message }</span>
+      }).toArray()
     );
   }
 };
 
-export class Field extends React.PureComponent {
+import classNames from 'classnames';
+import shallowEqual from 'shallowequal';
+
+export class Field extends React.Component {
   static contextTypes = {
     afterUpdate: PropTypes.func,
     resource: PropTypes.object,
   };
 
   static propTypes = {
+    className: PropTypes.string,
     component: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.instanceOf(ActiveResource.Collection),
-    optionsLabelKey: PropTypes.string,
+    optionsLabel: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.func,
+    ]),
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -173,6 +194,7 @@ export class Field extends React.PureComponent {
       PropTypes.string,
       PropTypes.number,
     ]),
+    invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
@@ -185,6 +207,8 @@ export class Field extends React.PureComponent {
     super();
 
     _.bindAll(this,
+      'classNames',
+      'commonInputProps',
       'handleChange',
       'handleUpdate',
       'renderCheckboxComponent',
@@ -193,6 +217,10 @@ export class Field extends React.PureComponent {
       'renderSelectComponent',
       'renderTextareaComponent'
     );
+  }
+
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
   }
 
   componentWillMount() {
@@ -212,26 +240,26 @@ export class Field extends React.PureComponent {
     });
   }
 
-  // TODO: Add support for non-resource options on select and radio
-  valueFor(resource, props) {
-    const { name, type, uncheckedValue, value } = props;
+  classNames() {
+    const { className, invalidClassName, name } = this.props;
+    const { resource } = this.context;
 
-    switch(type) {
-      case 'checkbox':
-        var resourceValue = resource[name];
-        if(resourceValue == value) {
-          return true;
-        } else if(resourceValue == uncheckedValue || _.isUndefined(resourceValue) || _.isNull(resourceValue)) {
-          return false;
-        } else {
-          throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
-        }
-      case 'radio':
-      case 'select':
-        var val = resource[name]();
-        return _.isNull(val) ? '' : val.id;
-      default:
-        return resource[name] || '';
+    return classNames(
+      className,
+      {
+        [invalidClassName]: !resource.errors().forField(name).empty()
+      }
+    );
+  }
+
+  commonInputProps() {
+    const { name } = this.props;
+
+    return {
+      className: this.classNames(),
+      key: name,
+      onBlur: this.handleUpdate,
+      onChange: this.handleChange,
     }
   }
 
@@ -250,6 +278,30 @@ export class Field extends React.PureComponent {
     }
   }
 
+  // TODO: Add support for non-resource options on select and radio
+  valueFor(resource, props) {
+    const { name, type, uncheckedValue, value } = props;
+
+    switch(type) {
+      case 'checkbox':
+        var resourceValue = resource[name];
+        if(resourceValue == value) {
+          return true;
+        } else if(resourceValue == uncheckedValue || _.isUndefined(resourceValue) || _.isNull(resourceValue)) {
+          return false;
+        } else {
+          throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
+        }
+      case 'radio':
+      case 'select':
+        var val = resource[name]();
+        return val ? val.id : '';
+      default:
+        var val = resource[name];
+        return (!_.isUndefined(val) && !_.isNull(val)) ? resource[name] : '';
+    }
+  }
+
   render() {
     const { type } = this.props;
 
@@ -264,9 +316,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...checkboxProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       checked: this.state.value,
     });
   }
@@ -279,9 +329,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...inputProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     });
   }
@@ -299,22 +347,30 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
       ...radioProps,
+      ...this.commonInputProps(),
       checked: value.id == fieldValue,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
       value: value.id,
     });
   }
 
   renderSelectComponent() {
-    const { component, includeBlank, name, options, optionsLabelKey } = this.props;
+    const { component, includeBlank, name, options, optionsLabel } = this.props;
 
     let selectOptions = null;
     if (options.empty()) {
       throw 'Input type="select" must have options';
     } else {
-      selectOptions = options.map((o) => <option key={o.localId} value={o.id}>{o[optionsLabelKey]}</option>);
+      selectOptions = options.map((o) => {
+        return <option key={o.id} value={o.id}>
+          {
+            _.isString(optionsLabel) ? (
+              o[optionsLabel]
+            ) : (
+              optionsLabel(o)
+            )
+          }
+        </option>;
+      });
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
       }
@@ -326,9 +382,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'select';
     return React.createElement(finalComponent, {
       ...selectProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     }, selectOptions.toArray());
   }
@@ -341,9 +395,7 @@ export class Field extends React.PureComponent {
     let finalComponent = component || 'textarea';
     return React.createElement(finalComponent, {
       ...textareaProps,
-      key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+      ...this.commonInputProps(),
       value: this.state.value,
     });
   }
@@ -396,6 +448,7 @@ export class Field extends React.PureComponent {
 
 export class Resource extends React.PureComponent {
   static propTypes = {
+    afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
     children: PropTypes.oneOfType([
       PropTypes.array,
@@ -404,6 +457,7 @@ export class Resource extends React.PureComponent {
     className: PropTypes.string,
     component: PropTypes.func,
     componentProps: PropTypes.object,
+    onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
     reflection: PropTypes.string,
     subject: PropTypes.object.isRequired,
@@ -506,7 +560,7 @@ export class Resource extends React.PureComponent {
   handleSubmit(e) {
     e.preventDefault();
 
-    const { onSubmit } = this.props;
+    const { onSubmit, onInvalidSubmit } = this.props;
     const { resource } = this.state;
 
     var onSubmitCallback = (resourceToSubmit) => {
@@ -515,8 +569,14 @@ export class Resource extends React.PureComponent {
       }
     };
 
+    var onInvalidSubmitCallback = (invalidResource) => {
+      if(!_.isUndefined(onInvalidSubmit)) {
+        onInvalidSubmit(invalidResource);
+      }
+    };
+
     if(!_.isUndefined(this.componentRef.beforeSubmit)) {
-      Promise.resolve(this.componentRef.beforeSubmit(resource)).then(onSubmitCallback)
+      Promise.resolve(this.componentRef.beforeSubmit(resource)).then(onSubmitCallback).catch(onInvalidSubmitCallback)
     } else {
       onSubmitCallback(resource);
     }
@@ -524,14 +584,15 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { children, className, component, componentProps } = this.props;
+    const { afterError, children, className, component, componentProps } = this.props;
     const { resource } = this.state;
 
-    let body = null;
+    let body;
     if(component) {
       body = React.createElement(component, {
         ...componentProps,
         afterUpdate: this.afterUpdate,
+        afterError,
         subject: resource,
         ref: (c) => { this.componentRef = c }
       });
@@ -539,15 +600,15 @@ export class Resource extends React.PureComponent {
       body = children;
     }
 
-    if(!isNestedResource) {
-      body = <form onSubmit={ this.handleSubmit }>{ body }</form>;
+    if(isNestedResource) {
+      return (
+        <section className={ className }>
+          { body }
+        </section>
+      );
+    } else {
+      return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
     }
-
-    return (
-      <section className={ className }>
-        { body }
-      </section>
-    );
   }
 
   updateRoot(newRoot, fromSave = false) {
