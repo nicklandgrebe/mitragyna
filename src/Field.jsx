@@ -13,7 +13,10 @@ export class Field extends React.Component {
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.instanceOf(ActiveResource.Collection),
-    optionsLabelKey: PropTypes.string,
+    optionsLabel: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.func,
+    ]),
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -181,13 +184,23 @@ export class Field extends React.Component {
   }
 
   renderSelectComponent() {
-    const { component, includeBlank, name, options, optionsLabelKey } = this.props;
+    const { component, includeBlank, name, options, optionsLabel } = this.props;
 
     let selectOptions = null;
     if (options.empty()) {
       throw 'Input type="select" must have options';
     } else {
-      selectOptions = options.map((o) => <option key={o.localId} value={o.id}>{o[optionsLabelKey]}</option>);
+      selectOptions = options.map((o) => {
+        return <option key={o.id} value={o.id}>
+          {
+            _.isString(optionsLabel) ? (
+              o[optionsLabel]
+            ) : (
+              optionsLabel(o)
+            )
+          }
+        </option>;
+      });
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
       }
