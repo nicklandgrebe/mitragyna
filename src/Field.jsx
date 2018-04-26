@@ -1,3 +1,5 @@
+import shallowEqual from 'shallowequal';
+
 export class Field extends React.PureComponent {
   static contextTypes = {
     afterUpdate: PropTypes.func,
@@ -37,6 +39,10 @@ export class Field extends React.PureComponent {
       'renderSelectComponent',
       'renderTextareaComponent'
     );
+  }
+
+  shouldComponentUpdate(nextProps, nextState, nextContext) {
+    return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
   }
 
   componentWillMount() {
