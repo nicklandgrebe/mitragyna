@@ -12,10 +12,12 @@ export class Collection extends React.PureComponent {
     className: PropTypes.string,
     blankComponent: PropTypes.func,
     component: PropTypes.func,
+    componentProps: PropTypes.object,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
     ]).isRequired,
+    reflection: PropTypes.string,
   };
 
   static defaultProps = {
@@ -101,7 +103,7 @@ export class Collection extends React.PureComponent {
   }
 
   render() {
-    const { blankComponent, children, className, component } = this.props;
+    const { blankComponent, children, className, component, componentProps, reflection } = this.props;
     const { loading, target } = this.state;
 
     return (
@@ -110,9 +112,14 @@ export class Collection extends React.PureComponent {
           <span>Loading</span>
         ) : (
           target.size() > 0 ? (
-            target.map((t) =>
-              <Resource subject={ t } key={ t.localId } component= { component }
-                        afterUpdate={ this.replaceOnTarget }>
+            target.map((t, index) =>
+              <Resource afterUpdate={ this.replaceOnTarget }
+                        component= { component } componentProps={ componentProps }
+                        key={ t.id || (t.klass().className + '-' + index) }
+                        reflection={reflection}
+                        subject={ t }>
+
+
                 { children }
               </Resource>
             ).toArray()
