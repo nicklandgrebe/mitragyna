@@ -112,10 +112,10 @@ export class Collection extends React.PureComponent {
           <span>Loading</span>
         ) : (
           target.size() > 0 ? (
-            target.map((t, index) =>
+            target.map((t, indexOf) =>
               <Resource afterUpdate={ this.replaceOnTarget }
-                        component= { component } componentProps={ componentProps }
-                        key={ t.id || (t.klass().className + '-' + index) }
+                        component= { component } componentProps={{ ...componentProps, indexOf }}
+                        key={ t.id || (t.klass().className + '-' + indexOf) }
                         reflection={reflection}
                         subject={ t }>
 
