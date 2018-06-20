@@ -16,17 +16,21 @@ export class Resource extends React.PureComponent {
   };
 
   static contextTypes = {
+    afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
+    updatingRoot: PropTypes.bool,
   };
 
   static childContextTypes = {
-    afterUpdate: PropTypes.func,
+    afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
+    queueChange: PropTypes.func,
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
+    updatingRoot: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -37,7 +41,8 @@ export class Resource extends React.PureComponent {
     super();
 
     _.bindAll(this,
-      'afterUpdate',
+      'assignChanges',
+      'queueChange',
       'handleSubmit',
       'updateRoot'
     );
@@ -56,7 +61,9 @@ export class Resource extends React.PureComponent {
       state = {
         ...state,
         inverseReflection,
+        queuedChanges: {},
         reflection: reflectionInstance,
+        updating: false,
       };
     }
 
@@ -64,16 +71,30 @@ export class Resource extends React.PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
+    const { afterUpdate } = this.props;
+    const { inverseReflection } = this.state;
+
     this.setState({ resource: nextProps.subject });
+
+    if(afterUpdate && !inverseReflection) {
+      this.setState({ updating: false });
+      this.assignChanges();
+    }
   }
 
   componentDidCatch(error) {
     return <p>{ error }</p>;
   }
 
-  afterUpdate(newResource) {
+  assignChanges() {
     const { root, updateRoot } = this.context;
-    const { inverseReflection, resource } = this.state;
+    const { inverseReflection, queuedChanges, resource } = this.state;
+
+    if(_.keys(queuedChanges).length == 0) return;
+
+    var newResource = resource.assignAttributes(queuedChanges);
+
+    this.setState({ queuedChanges: {} });
 
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
@@ -94,16 +115,42 @@ export class Resource extends React.PureComponent {
     }
   }
 
+  queueChange(change) {
+    const { afterUpdate } = this.props;
+    const { inverseReflection, queuedChanges, resource, updating } = this.state;
+    const { afterUpdateRoot, root, updatingRoot } = this.context;
+
+    this.setState({
+      queuedChanges: {
+        ...queuedChanges,
+        ...change
+      }
+    }, () => {
+      if(afterUpdate || afterUpdateRoot) {
+        if(inverseReflection) {
+          if(!updatingRoot) this.assignChanges();
+        } else {
+          if(!updating) this.assignChanges();
+        }
+      } else {
+        this.assignChanges();
+      }
+    });
+  }
+
   getChildContext() {
+    const { afterUpdate } = this.props;
     const { root } = this.context;
-    const { resource } = this.state;
+    const { resource, updating } = this.state;
 
     let childContext = {
-      afterUpdate: this.afterUpdate,
+      afterUpdateRoot: afterUpdate,
       isNestedResource: true,
+      queueChange: this.queueChange,
       root: root || resource,
       resource,
-      updateRoot: this.updateRoot
+      updateRoot: this.updateRoot,
+      updatingRoot: updating,
     };
 
     return childContext;
@@ -163,16 +210,15 @@ export class Resource extends React.PureComponent {
     }
   }
 
-  updateRoot(newRoot, fromSave = false) {
+  updateRoot(newRoot) {
     const { afterUpdate } = this.props;
     const { resource } = this.state;
 
     this.setState({ resource: newRoot });
 
-    if(!_.isUndefined(afterUpdate)) afterUpdate(newRoot, resource);
-
-    if(!fromSave) {
-      newRoot.save((root) => this.updateRoot(root, true));
+    if(afterUpdate) {
+      afterUpdate(newRoot, resource);
+      this.setState({ updating: true })
     }
   }
 }

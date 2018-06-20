@@ -3,7 +3,7 @@ import shallowEqual from 'shallowequal';
 
 export class Field extends React.Component {
   static contextTypes = {
-    afterUpdate: PropTypes.func,
+    queueChange: PropTypes.func,
     resource: PropTypes.object,
   };
 
@@ -64,6 +64,7 @@ export class Field extends React.Component {
 
   componentWillReceiveProps(nextProps, nextContext) {
     const { resource } = nextContext;
+    const { value } = this.state;
 
     this.setState({
       value: this.valueFor(resource, nextProps)
@@ -83,14 +84,24 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { name, type } = this.props;
 
-    return {
+    let props = {
       className: this.classNames(),
       key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+    };
+
+    if(type == 'radio') {
+      props.onChange = this.handleUpdate;
+    } else {
+      props = {
+        ...props,
+        onBlur: this.handleUpdate,
+        onChange: this.handleChange,
+      }
     }
+
+    return props;
   }
 
   componentFor(type) {
@@ -251,8 +262,8 @@ export class Field extends React.Component {
   handleUpdate(e) {
     e.persist();
 
-    const { afterUpdate, resource } = this.context;
     const { name, type, options, uncheckedValue, value } = this.props;
+    const { queueChange } = this.context;
 
     var newValue = e.target.value;
 
@@ -272,6 +283,6 @@ export class Field extends React.Component {
         break;
     }
 
-    afterUpdate(resource.assignAttributes({ [name]: newValue }));
+    queueChange({ [name]: newValue });
   }
 }
