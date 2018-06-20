@@ -112,10 +112,10 @@ export class Collection extends React.PureComponent {
           <span>Loading</span>
         ) : (
           target.size() > 0 ? (
-            target.map((t, index) =>
+            target.map((t, indexOf) =>
               <Resource afterUpdate={ this.replaceOnTarget }
-                        component= { component } componentProps={ componentProps }
-                        key={ t.id || (t.klass().className + '-' + index) }
+                        component= { component } componentProps={{ ...componentProps, indexOf }}
+                        key={ t.id || (t.klass().className + '-' + indexOf) }
                         reflection={reflection}
                         subject={ t }>
 
@@ -173,8 +173,15 @@ import shallowEqual from 'shallowequal';
 
 export class Field extends React.Component {
   static contextTypes = {
-    afterUpdate: PropTypes.func,
+    changeRadio: PropTypes.func,
+    queueChange: PropTypes.func,
+    radioValue: PropTypes.any,
     resource: PropTypes.object,
+  };
+
+  static childContextTypes = {
+    changeRadio: PropTypes.func,
+    radioValue: PropTypes.any,
   };
 
   static propTypes = {
@@ -207,6 +214,7 @@ export class Field extends React.Component {
     super();
 
     _.bindAll(this,
+      'changeRadio',
       'classNames',
       'commonInputProps',
       'handleChange',
@@ -215,12 +223,32 @@ export class Field extends React.Component {
       'renderInputComponent',
       'renderRadioComponent',
       'renderSelectComponent',
-      'renderTextareaComponent'
+      'renderTextareaComponent',
+      'valueFor',
     );
+
+    this.state = {};
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
+  }
+
+  getChildContext() {
+    const { type } = this.props;
+    const { value } = this.state;
+
+    switch(type) {
+      case 'radioGroup':
+        return {
+          changeRadio: this.changeRadio,
+          radioValue: value,
+        };
+    }
+  }
+
+  changeRadio(value) {
+    this.setState({ value })
   }
 
   componentWillMount() {
@@ -229,14 +257,6 @@ export class Field extends React.Component {
     // Set initial value to that of the resources
     this.setState({
       value: this.valueFor(resource, this.props)
-    });
-  }
-
-  componentWillReceiveProps(nextProps, nextContext) {
-    const { resource } = nextContext;
-
-    this.setState({
-      value: this.valueFor(resource, nextProps)
     });
   }
 
@@ -253,14 +273,29 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { name, type } = this.props;
 
-    return {
+    let props = {
       className: this.classNames(),
       key: name,
-      onBlur: this.handleUpdate,
-      onChange: this.handleChange,
+    };
+
+    switch(type) {
+      case 'checkbox':
+      case 'number':
+      case 'radio':
+      case 'select':
+        props.onChange = this.handleUpdate;
+        break;
+      default:
+        props = {
+          ...props,
+          onBlur: this.handleUpdate,
+          onChange: this.handleChange,
+        }
     }
+
+    return props;
   }
 
   componentFor(type) {
@@ -269,6 +304,8 @@ export class Field extends React.Component {
         return this.renderCheckboxComponent();
       case 'radio':
         return this.renderRadioComponent();
+      case 'radioGroup':
+        return this.renderRadioGroupComponent();
       case 'select':
         return this.renderSelectComponent();
       case 'textarea':
@@ -298,7 +335,8 @@ export class Field extends React.Component {
         return val ? val.id : '';
       default:
         var val = resource[name];
-        return (!_.isUndefined(val) && !_.isNull(val)) ? resource[name] : '';
+
+        return val ? val : '';
     }
   }
 
@@ -336,7 +374,7 @@ export class Field extends React.Component {
 
   renderRadioComponent() {
     const { component, name, value } = this.props;
-    const { value: fieldValue } = this.state;
+    const { radioValue } = this.context;
 
     if (_.isUndefined(value)) {
       throw 'Input type="radio" must have prop "value"';
@@ -348,9 +386,15 @@ export class Field extends React.Component {
     return React.createElement(finalComponent, {
       ...radioProps,
       ...this.commonInputProps(),
-      checked: value.id == fieldValue,
+      checked: value.id == radioValue,
       value: value.id,
     });
+  }
+
+  renderRadioGroupComponent() {
+    return <div>
+      { this.props.children }
+    </div>;
   }
 
   renderSelectComponent() {
@@ -400,10 +444,11 @@ export class Field extends React.Component {
     });
   }
 
-  handleChange(e) {
+  handleChange(e, callback) {
     e.persist();
 
     const { type } = this.props;
+    const { changeRadio } = this.context;
 
     let value;
 
@@ -411,38 +456,40 @@ export class Field extends React.Component {
       case 'checkbox':
         value = e.target.checked;
         break;
+      case 'radio':
+        changeRadio(e.target.value);
       default:
         value = e.target.value;
     }
 
-    this.setState({ value });
+    this.setState({ value }, callback);
   }
 
   handleUpdate(e) {
-    e.persist();
-
-    const { afterUpdate, resource } = this.context;
     const { name, type, options, uncheckedValue, value } = this.props;
+    const { queueChange } = this.context;
 
-    var newValue = e.target.value;
+    this.handleChange(e, () => {
+      var newValue = e.target.value;
 
-    switch(type) {
-      case 'checkbox':
-        if(e.target.checked) {
+      switch(type) {
+        case 'checkbox':
+          if(e.target.checked) {
+            newValue = value;
+          } else {
+            newValue = uncheckedValue;
+          }
+          break;
+        case 'radio':
           newValue = value;
-        } else {
-          newValue = uncheckedValue;
-        }
-        break;
-      case 'radio':
-        newValue = value;
-        break;
-      case 'select':
-        newValue = options.detect((o) => o.id === newValue);
-        break;
-    }
+          break;
+        case 'select':
+          newValue = options.detect((o) => o.id === newValue);
+          break;
+      }
 
-    afterUpdate(resource.assignAttributes({ [name]: newValue }));
+      queueChange({ [name]: newValue });
+    })
   }
 }
 
@@ -464,17 +511,21 @@ export class Resource extends React.PureComponent {
   };
 
   static contextTypes = {
+    afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
+    updatingRoot: PropTypes.bool,
   };
 
   static childContextTypes = {
-    afterUpdate: PropTypes.func,
+    afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
+    queueChange: PropTypes.func,
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
+    updatingRoot: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -485,7 +536,8 @@ export class Resource extends React.PureComponent {
     super();
 
     _.bindAll(this,
-      'afterUpdate',
+      'assignChanges',
+      'queueChange',
       'handleSubmit',
       'updateRoot'
     );
@@ -504,7 +556,9 @@ export class Resource extends React.PureComponent {
       state = {
         ...state,
         inverseReflection,
+        queuedChanges: {},
         reflection: reflectionInstance,
+        updating: false,
       };
     }
 
@@ -512,16 +566,30 @@ export class Resource extends React.PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
+    const { afterUpdate } = this.props;
+    const { inverseReflection } = this.state;
+
     this.setState({ resource: nextProps.subject });
+
+    if(afterUpdate && !inverseReflection) {
+      this.setState({ updating: false });
+      this.assignChanges();
+    }
   }
 
   componentDidCatch(error) {
     return <p>{ error }</p>;
   }
 
-  afterUpdate(newResource) {
+  assignChanges() {
     const { root, updateRoot } = this.context;
-    const { inverseReflection, resource } = this.state;
+    const { inverseReflection, queuedChanges, resource } = this.state;
+
+    if(_.keys(queuedChanges).length == 0) return;
+
+    var newResource = resource.assignAttributes(queuedChanges);
+
+    this.setState({ queuedChanges: {} });
 
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
@@ -542,16 +610,42 @@ export class Resource extends React.PureComponent {
     }
   }
 
+  queueChange(change) {
+    const { afterUpdate } = this.props;
+    const { inverseReflection, queuedChanges, resource, updating } = this.state;
+    const { afterUpdateRoot, root, updatingRoot } = this.context;
+
+    this.setState({
+      queuedChanges: {
+        ...queuedChanges,
+        ...change
+      }
+    }, () => {
+      if(afterUpdate || afterUpdateRoot) {
+        if(inverseReflection) {
+          if(!updatingRoot) this.assignChanges();
+        } else {
+          if(!updating) this.assignChanges();
+        }
+      } else {
+        this.assignChanges();
+      }
+    });
+  }
+
   getChildContext() {
+    const { afterUpdate } = this.props;
     const { root } = this.context;
-    const { resource } = this.state;
+    const { resource, updating } = this.state;
 
     let childContext = {
-      afterUpdate: this.afterUpdate,
+      afterUpdateRoot: afterUpdate,
       isNestedResource: true,
+      queueChange: this.queueChange,
       root: root || resource,
       resource,
-      updateRoot: this.updateRoot
+      updateRoot: this.updateRoot,
+      updatingRoot: updating,
     };
 
     return childContext;
@@ -611,16 +705,15 @@ export class Resource extends React.PureComponent {
     }
   }
 
-  updateRoot(newRoot, fromSave = false) {
+  updateRoot(newRoot) {
     const { afterUpdate } = this.props;
     const { resource } = this.state;
 
     this.setState({ resource: newRoot });
 
-    if(!_.isUndefined(afterUpdate)) afterUpdate(newRoot, resource);
-
-    if(!fromSave) {
-      newRoot.save((root) => this.updateRoot(root, true));
+    if(afterUpdate) {
+      afterUpdate(newRoot, resource);
+      this.setState({ updating: true })
     }
   }
 }

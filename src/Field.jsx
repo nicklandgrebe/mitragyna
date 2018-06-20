@@ -3,8 +3,15 @@ import shallowEqual from 'shallowequal';
 
 export class Field extends React.Component {
   static contextTypes = {
+    changeRadio: PropTypes.func,
     queueChange: PropTypes.func,
+    radioValue: PropTypes.any,
     resource: PropTypes.object,
+  };
+
+  static childContextTypes = {
+    changeRadio: PropTypes.func,
+    radioValue: PropTypes.any,
   };
 
   static propTypes = {
@@ -37,6 +44,7 @@ export class Field extends React.Component {
     super();
 
     _.bindAll(this,
+      'changeRadio',
       'classNames',
       'commonInputProps',
       'handleChange',
@@ -45,12 +53,32 @@ export class Field extends React.Component {
       'renderInputComponent',
       'renderRadioComponent',
       'renderSelectComponent',
-      'renderTextareaComponent'
+      'renderTextareaComponent',
+      'valueFor',
     );
+
+    this.state = {};
   }
 
   shouldComponentUpdate(nextProps, nextState, nextContext) {
     return !(shallowEqual(this.props, nextProps) && shallowEqual(this.state, nextState) && shallowEqual(this.context, nextContext));
+  }
+
+  getChildContext() {
+    const { type } = this.props;
+    const { value } = this.state;
+
+    switch(type) {
+      case 'radioGroup':
+        return {
+          changeRadio: this.changeRadio,
+          radioValue: value,
+        };
+    }
+  }
+
+  changeRadio(value) {
+    this.setState({ value })
   }
 
   componentWillMount() {
@@ -59,15 +87,6 @@ export class Field extends React.Component {
     // Set initial value to that of the resources
     this.setState({
       value: this.valueFor(resource, this.props)
-    });
-  }
-
-  componentWillReceiveProps(nextProps, nextContext) {
-    const { resource } = nextContext;
-    const { value } = this.state;
-
-    this.setState({
-      value: this.valueFor(resource, nextProps)
     });
   }
 
@@ -91,14 +110,19 @@ export class Field extends React.Component {
       key: name,
     };
 
-    if(type == 'radio') {
-      props.onChange = this.handleUpdate;
-    } else {
-      props = {
-        ...props,
-        onBlur: this.handleUpdate,
-        onChange: this.handleChange,
-      }
+    switch(type) {
+      case 'checkbox':
+      case 'number':
+      case 'radio':
+      case 'select':
+        props.onChange = this.handleUpdate;
+        break;
+      default:
+        props = {
+          ...props,
+          onBlur: this.handleUpdate,
+          onChange: this.handleChange,
+        }
     }
 
     return props;
@@ -110,6 +134,8 @@ export class Field extends React.Component {
         return this.renderCheckboxComponent();
       case 'radio':
         return this.renderRadioComponent();
+      case 'radioGroup':
+        return this.renderRadioGroupComponent();
       case 'select':
         return this.renderSelectComponent();
       case 'textarea':
@@ -139,7 +165,8 @@ export class Field extends React.Component {
         return val ? val.id : '';
       default:
         var val = resource[name];
-        return (!_.isUndefined(val) && !_.isNull(val)) ? resource[name] : '';
+
+        return val ? val : '';
     }
   }
 
@@ -177,7 +204,7 @@ export class Field extends React.Component {
 
   renderRadioComponent() {
     const { component, name, value } = this.props;
-    const { value: fieldValue } = this.state;
+    const { radioValue } = this.context;
 
     if (_.isUndefined(value)) {
       throw 'Input type="radio" must have prop "value"';
@@ -189,9 +216,15 @@ export class Field extends React.Component {
     return React.createElement(finalComponent, {
       ...radioProps,
       ...this.commonInputProps(),
-      checked: value.id == fieldValue,
+      checked: value.id == radioValue,
       value: value.id,
     });
+  }
+
+  renderRadioGroupComponent() {
+    return <div>
+      { this.props.children }
+    </div>;
   }
 
   renderSelectComponent() {
@@ -241,10 +274,11 @@ export class Field extends React.Component {
     });
   }
 
-  handleChange(e) {
+  handleChange(e, callback) {
     e.persist();
 
     const { type } = this.props;
+    const { changeRadio } = this.context;
 
     let value;
 
@@ -252,37 +286,39 @@ export class Field extends React.Component {
       case 'checkbox':
         value = e.target.checked;
         break;
+      case 'radio':
+        changeRadio(e.target.value);
       default:
         value = e.target.value;
     }
 
-    this.setState({ value });
+    this.setState({ value }, callback);
   }
 
   handleUpdate(e) {
-    e.persist();
-
     const { name, type, options, uncheckedValue, value } = this.props;
     const { queueChange } = this.context;
 
-    var newValue = e.target.value;
+    this.handleChange(e, () => {
+      var newValue = e.target.value;
 
-    switch(type) {
-      case 'checkbox':
-        if(e.target.checked) {
+      switch(type) {
+        case 'checkbox':
+          if(e.target.checked) {
+            newValue = value;
+          } else {
+            newValue = uncheckedValue;
+          }
+          break;
+        case 'radio':
           newValue = value;
-        } else {
-          newValue = uncheckedValue;
-        }
-        break;
-      case 'radio':
-        newValue = value;
-        break;
-      case 'select':
-        newValue = options.detect((o) => o.id === newValue);
-        break;
-    }
+          break;
+        case 'select':
+          newValue = options.detect((o) => o.id === newValue);
+          break;
+      }
 
-    queueChange({ [name]: newValue });
+      queueChange({ [name]: newValue });
+    })
   }
 }
