@@ -41,6 +41,7 @@ export class Resource extends React.PureComponent {
     super();
 
     _.bindAll(this,
+      'afterUpdate',
       'assignChanges',
       'queueChange',
       'handleSubmit',
@@ -86,15 +87,9 @@ export class Resource extends React.PureComponent {
     return <p>{ error }</p>;
   }
 
-  assignChanges() {
-    const { root, updateRoot } = this.context;
-    const { inverseReflection, queuedChanges, resource } = this.state;
-
-    if(_.keys(queuedChanges).length == 0) return;
-
-    var newResource = resource.assignAttributes(queuedChanges);
-
-    this.setState({ queuedChanges: {} });
+  afterUpdate(newResource) {
+    const { updateRoot } = this.context;
+    const { inverseReflection, resource } = this.state;
 
     if(inverseReflection) {
       var oldTarget = resource.association(inverseReflection.name).target;
@@ -113,6 +108,18 @@ export class Resource extends React.PureComponent {
     } else {
       this.updateRoot(newResource);
     }
+  }
+
+  assignChanges() {
+    const { queuedChanges, resource } = this.state;
+
+    if(_.keys(queuedChanges).length == 0) return;
+
+    var newResource = resource.assignAttributes(queuedChanges);
+
+    this.setState({ queuedChanges: {} });
+
+    this.afterUpdate(newResource);
   }
 
   queueChange(change) {
