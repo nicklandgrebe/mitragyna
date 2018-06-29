@@ -277,7 +277,7 @@ export class Field extends React.Component {
   handleChange(e, callback) {
     e.persist();
 
-    const { type } = this.props;
+    const { max, min, type } = this.props;
     const { changeRadio } = this.context;
 
     let value;
@@ -286,8 +286,19 @@ export class Field extends React.Component {
       case 'checkbox':
         value = e.target.checked;
         break;
+      case 'number':
+        if(e.target.value > max) {
+          value = max;
+        } else if(e.target.value < min) {
+          value = min;
+        } else {
+          value = e.target.value || min;
+        }
+
+        break;
       case 'radio':
         changeRadio(e.target.value);
+        break;
       default:
         value = e.target.value;
     }
