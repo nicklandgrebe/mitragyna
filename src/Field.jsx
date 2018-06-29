@@ -299,7 +299,7 @@ export class Field extends React.Component {
     const { name, type, options, uncheckedValue, value } = this.props;
     const { queueChange } = this.context;
 
-    this.handleChange(e, () => {
+    let afterChange = () => {
       var newValue = e.target.value;
 
       switch(type) {
@@ -319,6 +319,12 @@ export class Field extends React.Component {
       }
 
       queueChange({ [name]: newValue });
-    })
+    };
+
+    if(type == 'number') {
+      afterChange = _.debounce(afterChange, 1000);
+    }
+
+    this.handleChange(e, afterChange);
   }
 }
