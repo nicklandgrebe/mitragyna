@@ -44,16 +44,18 @@ export class Field extends React.Component {
     super();
 
     _.bindAll(this,
+      'afterChange',
       'changeRadio',
       'classNames',
       'commonInputProps',
+      'getValue',
       'handleChange',
-      'handleUpdate',
       'renderCheckboxComponent',
       'renderInputComponent',
       'renderRadioComponent',
       'renderSelectComponent',
       'renderTextareaComponent',
+      'setValue',
       'valueFor',
     );
 
@@ -82,12 +84,20 @@ export class Field extends React.Component {
   }
 
   componentWillMount() {
+    const { type } = this.props;
     const { resource } = this.context;
 
     // Set initial value to that of the resources
     this.setState({
       value: this.valueFor(resource, this.props)
     });
+
+    switch(type) {
+      case 'number':
+      case 'text':
+      case 'textarea':
+        this.afterChange = _.debounce(this.afterChange, 500);
+    }
   }
 
   classNames() {
@@ -108,7 +118,7 @@ export class Field extends React.Component {
     let props = {
       className: this.classNames(),
       key: name,
-      onChange: this.handleUpdate,
+      onChange: this.handleChange,
     };
 
     return props;
@@ -260,7 +270,7 @@ export class Field extends React.Component {
     });
   }
 
-  handleChange(e, callback) {
+  handleChange(e) {
     e.persist();
 
     const { max, min, type } = this.props;
@@ -289,42 +299,52 @@ export class Field extends React.Component {
         value = e.target.value;
     }
 
-    this.setState({ value }, callback);
+    this.setState({ value }, this.afterChange);
   }
 
-  handleUpdate(e) {
+  afterChange() {
     const { name, type, options, uncheckedValue, value } = this.props;
+    const { value: stateValue } = this.state;
     const { queueChange } = this.context;
 
-    let afterChange = () => {
-      var newValue = e.target.value;
-
-      switch(type) {
-        case 'checkbox':
-          if(e.target.checked) {
-            newValue = value;
-          } else {
-            newValue = uncheckedValue;
-          }
-          break;
-        case 'radio':
-          newValue = value;
-          break;
-        case 'select':
-          newValue = options.detect((o) => o.id === newValue);
-          break;
-      }
-
-      queueChange({ [name]: newValue });
-    };
-
+    let mappedValue;
     switch(type) {
-      case 'number':
-      case 'text':
-      case 'textarea':
-        afterChange = _.debounce(afterChange, 1000);
+      case 'checkbox':
+        if(stateValue) {
+          mappedValue = value;
+        } else {
+          mappedValue = uncheckedValue;
+        }
+        break;
+      case 'radio':
+        mappedValue = value;
+        break;
+      case 'select':
+        mappedValue = options.detect((o) => o.id === stateValue);
+        break;
+      default:
+        mappedValue = stateValue;
     }
 
-    this.handleChange(e, afterChange);
+    queueChange({ [name]: mappedValue });
+  }
+
+  getValue() {
+    return this.state.value;
+  }
+
+  setValue(value) {
+    const { type } = this.props;
+
+    let mappedValue = { persist: _.noop };
+    switch(type) {
+      case 'checkbox':
+        mappedValue = { ...mappedValue, target: { checked: value } };
+        break;
+      default:
+        mappedValue = { ...mappedValue, target: { value } };
+    }
+
+    this.handleChange(mappedValue);
   }
 }
