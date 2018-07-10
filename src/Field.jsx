@@ -108,22 +108,8 @@ export class Field extends React.Component {
     let props = {
       className: this.classNames(),
       key: name,
+      onChange: this.handleUpdate,
     };
-
-    switch(type) {
-      case 'checkbox':
-      case 'number':
-      case 'radio':
-      case 'select':
-        props.onChange = this.handleUpdate;
-        break;
-      default:
-        props = {
-          ...props,
-          onBlur: this.handleUpdate,
-          onChange: this.handleChange,
-        }
-    }
 
     return props;
   }
@@ -332,8 +318,11 @@ export class Field extends React.Component {
       queueChange({ [name]: newValue });
     };
 
-    if(type == 'number') {
-      afterChange = _.debounce(afterChange, 1000);
+    switch(type) {
+      case 'number':
+      case 'text':
+      case 'textarea':
+        afterChange = _.debounce(afterChange, 1000);
     }
 
     this.handleChange(e, afterChange);
