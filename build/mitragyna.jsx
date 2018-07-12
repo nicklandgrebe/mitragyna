@@ -263,6 +263,7 @@ export class Field extends React.Component {
     });
 
     switch(type) {
+      case 'email':
       case 'number':
       case 'text':
       case 'textarea':
