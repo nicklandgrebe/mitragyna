@@ -18,6 +18,9 @@ export class Resource extends React.PureComponent {
   static contextTypes = {
     afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
+    queuedReflectionChanges: PropTypes.array,
+    queueReflectionChange: PropTypes.func,
+    shiftReflectionQueue: PropTypes.func,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
     updatingRoot: PropTypes.bool,
@@ -27,6 +30,9 @@ export class Resource extends React.PureComponent {
     afterUpdateRoot: PropTypes.func,
     isNestedResource: PropTypes.bool,
     queueChange: PropTypes.func,
+    queuedReflectionChanges: PropTypes.array,
+    queueReflectionChange: PropTypes.func,
+    shiftReflectionQueue: PropTypes.func,
     resource: PropTypes.object,
     root: PropTypes.object,
     updateRoot: PropTypes.func,
@@ -34,7 +40,8 @@ export class Resource extends React.PureComponent {
   };
 
   static defaultProps = {
-    componentProps: {}
+    componentProps: {},
+    componentRef: _.noop,
   };
 
   constructor(props, context) {
@@ -43,6 +50,8 @@ export class Resource extends React.PureComponent {
     _.bindAll(this,
       'afterUpdate',
       'assignChanges',
+      'queueReflectionChange',
+      'shiftReflectionQueue',
       'queueChange',
       'handleSubmit',
       'updateRoot'
@@ -66,6 +75,11 @@ export class Resource extends React.PureComponent {
         reflection: reflectionInstance,
         updating: false,
       };
+    } else {
+      state = {
+        ...state,
+        queuedReflectionChanges: []
+      }
     }
 
     this.state = state;
@@ -74,12 +88,18 @@ export class Resource extends React.PureComponent {
   componentWillReceiveProps(nextProps) {
     const { afterUpdate } = this.props;
     const { inverseReflection } = this.state;
+    const { afterUpdateRoot, queuedReflectionChanges, shiftReflectionQueue } = this.context;
 
     this.setState({ resource: nextProps.subject });
 
     if(afterUpdate && !inverseReflection) {
       this.setState({ updating: false });
       this.assignChanges();
+    } else {
+      if(afterUpdateRoot && inverseReflection && queuedReflectionChanges[0] === this) {
+        shiftReflectionQueue();
+        this.assignChanges();
+      }
     }
   }
 
@@ -124,8 +144,7 @@ export class Resource extends React.PureComponent {
 
   queueChange(change) {
     const { afterUpdate } = this.props;
-    const { inverseReflection, queuedChanges, resource, updating } = this.state;
-    const { afterUpdateRoot, root, updatingRoot } = this.context;
+    const { inverseReflection, queuedChanges, updating } = this.state;
 
     this.setState({
       queuedChanges: {
@@ -133,9 +152,15 @@ export class Resource extends React.PureComponent {
         ...change
       }
     }, () => {
+      const { afterUpdateRoot, queueReflectionChange, updatingRoot } = this.context;
+
       if(afterUpdate || afterUpdateRoot) {
         if(inverseReflection) {
-          if(!updatingRoot) this.assignChanges();
+          if(updatingRoot) {
+            queueReflectionChange(this);
+          } else {
+            this.assignChanges();
+          }
         } else {
           if(!updating) this.assignChanges();
         }
@@ -145,15 +170,32 @@ export class Resource extends React.PureComponent {
     });
   }
 
+  queueReflectionChange(resource) {
+    let { queuedReflectionChanges } = this.state;
+
+    queuedReflectionChanges.push(resource);
+    this.setState({ queuedReflectionChanges });
+  }
+  
+  shiftReflectionQueue() {
+    let { queuedReflectionChanges } = this.state;
+
+    queuedReflectionChanges.shift();
+    this.setState({ queuedReflectionChanges });
+  }
+
   getChildContext() {
     const { afterUpdate } = this.props;
     const { root } = this.context;
-    const { resource, updating } = this.state;
+    const { resource, queuedReflectionChanges, updating } = this.state;
 
     let childContext = {
       afterUpdateRoot: afterUpdate,
       isNestedResource: true,
       queueChange: this.queueChange,
+      queuedReflectionChanges: queuedReflectionChanges,
+      queueReflectionChange: this.queueReflectionChange,
+      shiftReflectionQueue: this.shiftReflectionQueue,
       root: root || resource,
       resource,
       updateRoot: this.updateRoot,
@@ -163,8 +205,8 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
-  handleSubmit(e) {
-    e.preventDefault();
+  handleSubmit(e, callback) {
+    if(e) e.preventDefault();
 
     const { onSubmit, onInvalidSubmit } = this.props;
     const { resource } = this.state;
@@ -173,11 +215,19 @@ export class Resource extends React.PureComponent {
       if(!_.isUndefined(onSubmit)) {
         onSubmit(resourceToSubmit);
       }
+
+      if(!_.isUndefined(callback)) {
+        callback(resourceToSubmit);
+      }
     };
 
     var onInvalidSubmitCallback = (invalidResource) => {
       if(!_.isUndefined(onInvalidSubmit)) {
         onInvalidSubmit(invalidResource);
+      }
+
+      if(!_.isUndefined(callback)) {
+        callback(invalidResource);
       }
     };
 
@@ -190,7 +240,7 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef } = this.props;
     const { resource } = this.state;
 
     let body;
@@ -200,7 +250,7 @@ export class Resource extends React.PureComponent {
         afterUpdate: this.afterUpdate,
         afterError,
         subject: resource,
-        ref: (c) => { this.componentRef = c }
+        ref: (c) => { this.componentRef = c; componentRef(c) }
       });
     } else {
       body = children;
