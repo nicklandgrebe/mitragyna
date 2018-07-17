@@ -754,7 +754,14 @@ export class Resource extends React.PureComponent {
     };
 
     if(!_.isUndefined(this.componentRef.beforeSubmit)) {
-      Promise.resolve(this.componentRef.beforeSubmit(resource)).then(onSubmitCallback).catch(onInvalidSubmitCallback)
+      new Promise((resolve, reject) => {
+        try {
+          var result = this.componentRef.beforeSubmit(resource);
+          resolve(result);
+        } catch(invalid) {
+          reject(invalid);
+        }
+      }).then(onSubmitCallback).catch(onInvalidSubmitCallback)
     } else {
       onSubmitCallback(resource);
     }
