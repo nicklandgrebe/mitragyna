@@ -80,7 +80,7 @@ export class Field extends React.Component {
   }
 
   changeRadio(value) {
-    this.setState({ value })
+    this.setState({ value });
   }
 
   componentWillMount() {
@@ -142,7 +142,7 @@ export class Field extends React.Component {
     }
   }
 
-  // TODO: Add support for non-resource options on select and radio
+  // TODO: Add support for non-resource options on select and radioGroup
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
 
@@ -156,7 +156,7 @@ export class Field extends React.Component {
         } else {
           throw 'Field ' + name + ' with value ' + resource[name] + ' does not match value or uncheckedValue for checkbox'
         }
-      case 'radio':
+      case 'radioGroup':
       case 'select':
         var val = resource[name]();
         return val ? val.id : '';

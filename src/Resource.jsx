@@ -134,7 +134,7 @@ export class Resource extends React.PureComponent {
     const { queuedChanges, resource } = this.state;
 
     if(_.keys(queuedChanges).length == 0) return;
-
+    
     var newResource = resource.assignAttributes(queuedChanges);
 
     this.setState({ queuedChanges: {} });
