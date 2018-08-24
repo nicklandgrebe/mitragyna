@@ -48,6 +48,7 @@ export class Field extends React.Component {
       'changeRadio',
       'classNames',
       'commonInputProps',
+      'customInputProps',
       'getValue',
       'handleChange',
       'renderCheckboxComponent',
@@ -142,6 +143,26 @@ export class Field extends React.Component {
     }
   }
 
+  // @note type='radio' will pass down +name+ prop
+  // @note type='select' will only pass down +type+ prop if +component+ prop is defined
+  customInputProps() {
+    const { component, type } = this.props;
+
+    var omittedProps;
+    switch(type) {
+      case 'radio':
+        omittedProps = _.omit(Field.propTypes, ['type', 'name']);
+        break;
+      case 'select':
+        omittedProps = component ? _.omit(Field.propTypes, 'type') : Field.propTypes;
+        break;
+      default:
+        omittedProps = _.omit(Field.propTypes, 'type');
+    }
+
+    return _.omit(this.props, _.keys(omittedProps));
+  }
+
   // TODO: Add support for non-resource options on select and radioGroup
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
@@ -174,45 +195,39 @@ export class Field extends React.Component {
   }
 
   renderCheckboxComponent() {
-    const { component, name } = this.props;
-
-    let checkboxProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
+    const { component } = this.props;
 
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
-      ...checkboxProps,
       ...this.commonInputProps(),
+      ...this.customInputProps(),
       checked: this.state.value,
     });
   }
 
   renderInputComponent() {
-    const { component, name } = this.props;
-
-    let inputProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
+    const { component } = this.props;
 
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
-      ...inputProps,
       ...this.commonInputProps(),
+      ...this.customInputProps(),
       value: this.state.value,
     });
   }
 
   renderRadioComponent() {
-    const { component, name, value } = this.props;
+    const { component, value } = this.props;
     const { radioValue } = this.context;
 
     if (_.isUndefined(value)) {
       throw 'Input type="radio" must have prop "value"';
     }
 
-    let radioProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
-
     let finalComponent = component || 'input';
     return React.createElement(finalComponent, {
-      ...radioProps,
       ...this.commonInputProps(),
+      ...this.customInputProps(),
       checked: value.id == radioValue,
       value: value.id,
     });
@@ -225,7 +240,7 @@ export class Field extends React.Component {
   }
 
   renderSelectComponent() {
-    const { component, includeBlank, name, options, optionsLabel } = this.props;
+    const { component, includeBlank, options, optionsLabel } = this.props;
 
     let selectOptions = null;
     if (options.empty()) {
@@ -247,13 +262,10 @@ export class Field extends React.Component {
       }
     }
 
-    let omittedKeys = component ? _.omit(Field.propTypes, 'type') : Field.propTypes;
-    let selectProps = _.omit(this.props, _.keys(omittedKeys));
-
     let finalComponent = component || 'select';
     return React.createElement(finalComponent, {
-      ...selectProps,
       ...this.commonInputProps(),
+      ...this.customInputProps(),
       value: this.state.value,
     }, selectOptions.toArray());
   }
@@ -261,12 +273,10 @@ export class Field extends React.Component {
   renderTextareaComponent() {
     const { component, name } = this.props;
 
-    let textareaProps = _.omit(this.props, _.keys(_.omit(Field.propTypes, 'type')));
-
     let finalComponent = component || 'textarea';
     return React.createElement(finalComponent, {
-      ...textareaProps,
       ...this.commonInputProps(),
+      ...this.customInputProps(),
       value: this.state.value,
     });
   }
