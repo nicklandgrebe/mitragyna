@@ -285,11 +285,12 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name, type } = this.props;
+    const { name } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
+      name,
       onChange: this.handleChange,
     };
 
@@ -441,7 +442,7 @@ export class Field extends React.Component {
   }
 
   renderTextareaComponent() {
-    const { component, name } = this.props;
+    const { component } = this.props;
 
     let finalComponent = component || 'textarea';
     return React.createElement(finalComponent, {
