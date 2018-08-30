@@ -789,6 +789,7 @@ export class Resource extends React.PureComponent {
         ...componentProps,
         afterUpdate: this.afterUpdate,
         afterError,
+        onSubmit: this.handleSubmit,
         subject: resource,
         ref: (c) => { this.componentRef = c; componentRef(c) }
       });
