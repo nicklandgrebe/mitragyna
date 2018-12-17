@@ -2,7 +2,7 @@
   "name": "mitragyna",
   "version": "0.0.1",
   "description": "A library for managing ActiveResources as React components",
-  "main": "dist/mitragyna.min.js",
+  "main": "build/mitragyna.min.js",
   "scripts": {
     "test": "grunt spec"
   },
