@@ -401,6 +401,7 @@ export class Field extends React.Component {
       ...this.customInputProps(),
       checked: value.id == radioValue,
       value: value.id,
+      name: value.questionId
     });
   }
 
