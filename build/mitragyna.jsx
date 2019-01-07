@@ -31,7 +31,6 @@ export class Collection extends React.PureComponent {
     super();
 
     this.state = {
-      loading: true,
       target: ActiveResource.prototype.Collection.build()
     };
 
@@ -54,23 +53,7 @@ export class Collection extends React.PureComponent {
   setTarget(props) {
     const { subject } = props;
 
-    let isRelationship = subject.isA(ActiveResource.prototype.Associations.prototype.CollectionProxy);
-
-    let setLoadedTarget = (target) => {
-      this.setState({ loading: false, target })
-    };
-
-    if(isRelationship) {
-      if(subject.base.loaded()) {
-        setLoadedTarget(subject.base.target)
-      } else {
-        subject.load()
-        .then(setLoadedTarget)
-      }
-    } else if(!_.isUndefined(subject.all)) {
-      subject.all()
-      .then(setLoadedTarget)
-    }
+    this.setState({ target: subject.target() })
   }
 
   buildOnTarget(attributes) {
@@ -104,29 +87,27 @@ export class Collection extends React.PureComponent {
 
   render() {
     const { blankComponent, children, className, component, componentProps, reflection } = this.props;
-    const { loading, target } = this.state;
+    const { target } = this.state;
 
     return (
       <section className={ className }>
-        { loading ? (
-          <span>Loading</span>
-        ) : (
+        {
           target.size() > 0 ? (
             target.map((t, indexOf) =>
-              <Resource afterUpdate={ this.replaceOnTarget }
-                        component= { component } componentProps={{ ...componentProps, indexOf }}
-                        key={ t.id || (t.klass().className + '-' + indexOf) }
+              <Resource afterUpdate={this.replaceOnTarget}
+                        component={component} componentProps={{...componentProps, indexOf}}
+                        key={t.id || (t.klass().className + '-' + indexOf)}
                         reflection={reflection}
-                        subject={ t }>
+                        subject={t}>
 
 
-                { children }
+                {children}
               </Resource>
             ).toArray()
           ) : (blankComponent != null &&
             blankComponent()
           )
-        )}
+        }
       </section>
     );
   }
