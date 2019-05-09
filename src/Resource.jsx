@@ -82,6 +82,7 @@ export class Resource extends React.PureComponent {
       }
     }
 
+    this.beforeSubmit = props.beforeSubmit;
     this.state = state;
   }
 
@@ -134,7 +135,7 @@ export class Resource extends React.PureComponent {
     const { queuedChanges, resource } = this.state;
 
     if(_.keys(queuedChanges).length == 0) return;
-    
+
     var newResource = resource.assignAttributes(queuedChanges);
 
     this.setState({ queuedChanges: {} });
@@ -176,7 +177,7 @@ export class Resource extends React.PureComponent {
     queuedReflectionChanges.push(resource);
     this.setState({ queuedReflectionChanges });
   }
-  
+
   shiftReflectionQueue() {
     let { queuedReflectionChanges } = this.state;
 
@@ -231,10 +232,11 @@ export class Resource extends React.PureComponent {
       }
     };
 
-    if(!_.isUndefined(this.componentRef.beforeSubmit)) {
+    let beforeSubmit = this.beforeSubmit || (this.componentRef && this.componentRef.beforeSubmit);
+    if(!_.isUndefined(beforeSubmit)) {
       new Promise((resolve, reject) => {
         try {
-          var result = this.componentRef.beforeSubmit(resource);
+          var result = beforeSubmit(resource);
           resolve(result);
         } catch(invalid) {
           reject(invalid);
