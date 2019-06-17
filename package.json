@@ -1,6 +1,6 @@
 {
   "name": "mitragyna",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A library for managing ActiveResources as React components",
   "main": "build/mitragyna.min.js",
   "scripts": {
