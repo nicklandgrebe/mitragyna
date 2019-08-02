@@ -175,6 +175,7 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    rnChangeHandler: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -266,13 +267,13 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { name, rnChangeHandler } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
       name,
-      onChange: this.handleChange,
+      [rnChangeHandler || 'onChange']: this.handleChange,
     };
 
     return props;
@@ -437,7 +438,7 @@ export class Field extends React.Component {
   handleChange(e) {
     e.persist();
 
-    const { max, min, type } = this.props;
+    const { max, min, rnChangeHandler, type } = this.props;
     const { changeRadio } = this.context;
 
     let value;
@@ -460,7 +461,11 @@ export class Field extends React.Component {
         changeRadio(e.target.value);
         break;
       default:
-        value = e.target.value;
+        if (rnChangeHandler) {
+          value = e;
+        } else {
+          value = e.target.value;
+        }
     }
 
     this.setState({ value }, this.afterChange);
@@ -527,6 +532,7 @@ export class Resource extends React.PureComponent {
     onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
   };
 
@@ -764,7 +770,7 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, rnComponent } = this.props;
     const { resource } = this.state;
 
     let body;
@@ -781,14 +787,22 @@ export class Resource extends React.PureComponent {
       body = children;
     }
 
-    if(isNestedResource) {
-      return (
-        <section className={ className }>
-          { body }
-        </section>
-      );
+    if(rnComponent) {
+      return React.createElement(
+        rnComponent,
+        {},
+        body
+      )
     } else {
-      return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+      if(isNestedResource) {
+        return (
+          <section className={ className }>
+            { body }
+          </section>
+        );
+      } else {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+      }
     }
   }
 
