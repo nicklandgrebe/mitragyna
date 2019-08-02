@@ -12,6 +12,7 @@ export class Resource extends React.PureComponent {
     onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
   };
 
@@ -249,7 +250,7 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, rnComponent } = this.props;
     const { resource } = this.state;
 
     let body;
@@ -266,14 +267,22 @@ export class Resource extends React.PureComponent {
       body = children;
     }
 
-    if(isNestedResource) {
-      return (
-        <section className={ className }>
-          { body }
-        </section>
-      );
+    if(rnComponent) {
+      return React.createElement(
+        rnComponent,
+        {},
+        body
+      )
     } else {
-      return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+      if(isNestedResource) {
+        return (
+          <section className={ className }>
+            { body }
+          </section>
+        );
+      } else {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+      }
     }
   }
 

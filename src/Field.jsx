@@ -24,6 +24,7 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    rnChangeHandler: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -115,13 +116,13 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { name, rnChangeHandler } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
       name,
-      onChange: this.handleChange,
+      [rnChangeHandler || 'onChange']: this.handleChange,
     };
 
     return props;
@@ -286,7 +287,7 @@ export class Field extends React.Component {
   handleChange(e) {
     e.persist();
 
-    const { max, min, type } = this.props;
+    const { max, min, rnChangeHandler, type } = this.props;
     const { changeRadio } = this.context;
 
     let value;
@@ -309,7 +310,11 @@ export class Field extends React.Component {
         changeRadio(e.target.value);
         break;
       default:
-        value = e.target.value;
+        if (rnChangeHandler) {
+          value = e;
+        } else {
+          value = e.target.value;
+        }
     }
 
     this.setState({ value }, this.afterChange);
