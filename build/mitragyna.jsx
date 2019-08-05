@@ -436,7 +436,7 @@ export class Field extends React.Component {
   }
 
   handleChange(e) {
-    e.persist();
+    if (!rnChangeHandler) e.persist();
 
     const { max, min, rnChangeHandler, type } = this.props;
     const { changeRadio } = this.context;
