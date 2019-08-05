@@ -116,6 +116,8 @@ export class Collection extends React.PureComponent {
 export class ErrorsFor extends React.Component {
   static propTypes = {
     component: PropTypes.func,
+    errorComponent: PropTypes.func,
+    errorProps: PropTypes.object,
     field: PropTypes.string,
   };
 
@@ -129,7 +131,7 @@ export class ErrorsFor extends React.Component {
 
   render() {
     const { resource } = this.context;
-    const { component, field } = this.props;
+    const { component, errorComponent, errorProps, field } = this.props;
 
     var errors = resource.errors().forField(field);
 
@@ -143,7 +145,18 @@ export class ErrorsFor extends React.Component {
       key: field,
     },
       errors.map((error) => {
-        return <span key={ error.code }>{ error.message }</span>
+        if (errorComponent) {
+          return React.createElement(
+            errorComponent,
+            {
+              ...errorProps,
+              key: error.code,
+            },
+            error.message
+          )
+        } else {
+          return <span key={ error.code }>{ error.message }</span>
+        }
       }).toArray()
     );
   }
