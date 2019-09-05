@@ -218,10 +218,8 @@
             componentProps = _props3.componentProps,
             reflection = _props3.reflection,
             wrapperComponent = _props3.wrapperComponent;
-        var subject = this.state.subject;
+        var target = this.state.target;
 
-
-        var target = subject.target();
 
         var body = _react2.default.createElement(
           _react2.default.Fragment,
@@ -247,7 +245,7 @@
 
         return _react2.default.createElement(wrapperComponent, {
           className: className,
-          onAdd: this.buildResource
+          onBuild: this.buildResource
         }, body);
       }
     }]);

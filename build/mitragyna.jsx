@@ -97,9 +97,7 @@ export class Collection extends React.PureComponent {
 
   render() {
     const { blankComponent, children, className, component, componentProps, reflection, wrapperComponent } = this.props;
-    const { subject } = this.state;
-
-    const target = subject.target()
+    const { target } = this.state;
 
     const body =
       <React.Fragment>
@@ -131,7 +129,7 @@ export class Collection extends React.PureComponent {
       wrapperComponent,
       {
         className,
-        onAdd: this.buildResource
+        onBuild: this.buildResource
       },
       body
     )
