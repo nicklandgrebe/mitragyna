@@ -253,6 +253,17 @@ export class Field extends React.Component {
     }
   }
 
+  componentDidUpdate(prevProps, prevState, prevContext) {
+    const { resource: prevResource } = prevContext
+    const { resource } = this.context
+
+    if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
+      this.setState({
+        value: this.valueFor(resource, this.props)
+      })
+    }
+  }
+
   classNames() {
     const { className, invalidClassName, name } = this.props;
     const { resource } = this.context;
