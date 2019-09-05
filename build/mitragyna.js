@@ -124,11 +124,27 @@
 
       var _this = _possibleConstructorReturn(this, (Collection.__proto__ || Object.getPrototypeOf(Collection)).call(this));
 
-      _this.state = {
-        target: _activeResource2.default.prototype.Collection.build()
+      _this.buildResource = function () {
+        var _this$props = _this.props,
+            onBuild = _this$props.onBuild,
+            reflection = _this$props.reflection,
+            subject = _this$props.subject;
+        var _this$context = _this.context,
+            resource = _this$context.resource,
+            updateRoot = _this$context.updateRoot;
+
+
+        if (resource) {
+          var newResource = resource[reflection.name]().build();
+          updateRoot(newResource);
+        } else {
+          onBuild();
+        }
       };
 
-      _underscore2.default.bindAll(_this, 'buildOnTarget', 'cloneTarget', 'replaceOnTarget', 'removeFromTarget');
+      _this.state = {
+        target: _activeResource2.default.Collection.build()
+      };
       return _this;
     }
 
@@ -144,93 +160,121 @@
       }
     }, {
       key: 'setTarget',
-      value: function setTarget(props) {
-        var subject = props.subject;
-
+      value: function setTarget(_ref) {
+        var subject = _ref.subject;
 
         this.setState({ target: subject.target() });
       }
     }, {
-      key: 'buildOnTarget',
-      value: function buildOnTarget(attributes) {
-        var subject = this.props.subject;
+      key: 'replaceResource',
+      value: function replaceResource(newItem, oldItem) {
+        var _props = this.props,
+            onReplace = _props.onReplace,
+            reflection = _props.reflection,
+            subject = _props.subject;
+        var _context = this.context,
+            resource = _context.resource,
+            updateRoot = _context.updateRoot;
 
-        var target = this.cloneTarget();
 
-        target.push(subject.build(attributes));
-
-        this.setState({ target: target });
+        if (resource) {
+          var newResource = resource.clone();
+          resource[reflection.name]().target().replace(oldItem, newItem);
+          updateRoot(newResource);
+        } else {
+          onReplace(newItem, oldItem);
+        }
       }
     }, {
-      key: 'replaceOnTarget',
-      value: function replaceOnTarget(newItem, oldItem) {
-        var target = this.cloneTarget();
+      key: 'deleteResource',
+      value: function deleteResource(item) {
+        var _props2 = this.props,
+            onDelete = _props2.onDelete,
+            reflection = _props2.reflection,
+            subject = _props2.subject;
+        var _context2 = this.context,
+            resource = _context2.resource,
+            updateRoot = _context2.updateRoot;
 
-        target.replace(oldItem, newItem);
 
-        return this.setState({ target: target });
-      }
-    }, {
-      key: 'removeFromTarget',
-      value: function removeFromTarget(item) {
-        var target = this.cloneTarget();
-
-        target.delete(item);
-
-        return this.setState({ target: target });
-      }
-    }, {
-      key: 'cloneTarget',
-      value: function cloneTarget() {
-        return this.state.target.clone();
+        if (resource) {
+          var newResource = resource.clone();
+          resource[reflection.name]().target().delete(item);
+          updateRoot(newResource);
+        } else {
+          onDelete(item);
+        }
       }
     }, {
       key: 'render',
       value: function render() {
         var _this2 = this;
 
-        var _props = this.props,
-            blankComponent = _props.blankComponent,
-            children = _props.children,
-            className = _props.className,
-            component = _props.component,
-            componentProps = _props.componentProps,
-            reflection = _props.reflection;
-        var target = this.state.target;
+        var _props3 = this.props,
+            blankComponent = _props3.blankComponent,
+            children = _props3.children,
+            className = _props3.className,
+            component = _props3.component,
+            componentProps = _props3.componentProps,
+            reflection = _props3.reflection,
+            wrapperComponent = _props3.wrapperComponent;
+        var subject = this.state.subject;
 
 
-        return _react2.default.createElement(
-          'section',
-          { className: className },
+        var target = subject.target();
+
+        var body = _react2.default.createElement(
+          _react2.default.Fragment,
+          null,
           target.size() > 0 ? target.map(function (t, indexOf) {
             return _react2.default.createElement(
               Resource,
-              { afterUpdate: _this2.replaceOnTarget,
-                component: component, componentProps: _extends({}, componentProps, { indexOf: indexOf }),
+              {
+                afterDelete: _this2.deleteResource,
+                afterUpdate: _this2.replaceResource,
+                component: component,
+                componentProps: _extends({}, componentProps, {
+                  indexOf: indexOf
+                }),
                 key: t.id || t.klass().className + '-' + indexOf,
                 reflection: reflection,
-                subject: t },
+                subject: t
+              },
               children
             );
-          }).toArray() : blankComponent != null && blankComponent()
+          }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
         );
+
+        return _react2.default.createElement(wrapperComponent, {
+          className: className,
+          onAdd: this.buildResource
+        }, body);
       }
     }]);
 
     return Collection;
   }(_react2.default.PureComponent);
 
+  Collection.contextTypes = {
+    resource: _propTypes2.default.object,
+    updateRoot: _propTypes2.default.func
+  };
   Collection.propTypes = {
     children: _propTypes2.default.oneOfType([_propTypes2.default.array, _propTypes2.default.node]),
     className: _propTypes2.default.string,
     blankComponent: _propTypes2.default.func,
     component: _propTypes2.default.func,
     componentProps: _propTypes2.default.object,
+    onBuild: _propTypes2.default.func,
+    onDelete: _propTypes2.default.func,
+    onReplace: _propTypes2.default.func,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
-    reflection: _propTypes2.default.string
+    reflection: _propTypes2.default.string,
+    wrapperComponent: _propTypes2.default.oneOfType(_propTypes2.default.func, _propTypes2.default.string)
   };
   Collection.defaultProps = {
-    inlineRows: false
+    inlineRows: false,
+    wrapperComponent: 'section'
   };
 
   var ErrorsFor = exports.ErrorsFor = function (_React$Component) {
@@ -251,9 +295,9 @@
       key: 'render',
       value: function render() {
         var resource = this.context.resource;
-        var _props2 = this.props,
-            component = _props2.component,
-            field = _props2.field;
+        var _props4 = this.props,
+            component = _props4.component,
+            field = _props4.field;
 
 
         var errors = resource.errors().forField(field);
@@ -367,10 +411,10 @@
     }, {
       key: 'classNames',
       value: function classNames() {
-        var _props3 = this.props,
-            className = _props3.className,
-            invalidClassName = _props3.invalidClassName,
-            name = _props3.name;
+        var _props5 = this.props,
+            className = _props5.className,
+            invalidClassName = _props5.invalidClassName,
+            name = _props5.name;
         var resource = this.context.resource;
 
 
@@ -416,9 +460,9 @@
     }, {
       key: 'customInputProps',
       value: function customInputProps() {
-        var _props4 = this.props,
-            component = _props4.component,
-            type = _props4.type;
+        var _props6 = this.props,
+            component = _props6.component,
+            type = _props6.type;
 
 
         var omittedProps;
@@ -500,9 +544,9 @@
     }, {
       key: 'renderRadioComponent',
       value: function renderRadioComponent() {
-        var _props5 = this.props,
-            component = _props5.component,
-            value = _props5.value;
+        var _props7 = this.props,
+            component = _props7.component,
+            value = _props7.value;
         var radioValue = this.context.radioValue;
 
 
@@ -529,11 +573,11 @@
     }, {
       key: 'renderSelectComponent',
       value: function renderSelectComponent() {
-        var _props6 = this.props,
-            component = _props6.component,
-            includeBlank = _props6.includeBlank,
-            options = _props6.options,
-            optionsLabel = _props6.optionsLabel;
+        var _props8 = this.props,
+            component = _props8.component,
+            includeBlank = _props8.includeBlank,
+            options = _props8.options,
+            optionsLabel = _props8.optionsLabel;
 
 
         var selectOptions = null;
@@ -573,10 +617,10 @@
       value: function handleChange(e) {
         e.persist();
 
-        var _props7 = this.props,
-            max = _props7.max,
-            min = _props7.min,
-            type = _props7.type;
+        var _props9 = this.props,
+            max = _props9.max,
+            min = _props9.min,
+            type = _props9.type;
         var changeRadio = this.context.changeRadio;
 
 
@@ -608,12 +652,12 @@
     }, {
       key: 'afterChange',
       value: function afterChange() {
-        var _props8 = this.props,
-            name = _props8.name,
-            type = _props8.type,
-            options = _props8.options,
-            uncheckedValue = _props8.uncheckedValue,
-            value = _props8.value;
+        var _props10 = this.props,
+            name = _props10.name,
+            type = _props10.type,
+            options = _props10.options,
+            uncheckedValue = _props10.uncheckedValue,
+            value = _props10.value;
         var stateValue = this.state.value;
         var queueChange = this.context.queueChange;
 
@@ -736,10 +780,10 @@
       value: function componentWillReceiveProps(nextProps) {
         var afterUpdate = this.props.afterUpdate;
         var inverseReflection = this.state.inverseReflection;
-        var _context = this.context,
-            afterUpdateRoot = _context.afterUpdateRoot,
-            queuedReflectionChanges = _context.queuedReflectionChanges,
-            shiftReflectionQueue = _context.shiftReflectionQueue;
+        var _context3 = this.context,
+            afterUpdateRoot = _context3.afterUpdateRoot,
+            queuedReflectionChanges = _context3.queuedReflectionChanges,
+            shiftReflectionQueue = _context3.shiftReflectionQueue;
 
 
         this.setState({ resource: nextProps.subject });
@@ -821,10 +865,10 @@
         this.setState({
           queuedChanges: _extends({}, queuedChanges, change)
         }, function () {
-          var _context2 = _this6.context,
-              afterUpdateRoot = _context2.afterUpdateRoot,
-              queueReflectionChange = _context2.queueReflectionChange,
-              updatingRoot = _context2.updatingRoot;
+          var _context4 = _this6.context,
+              afterUpdateRoot = _context4.afterUpdateRoot,
+              queueReflectionChange = _context4.queueReflectionChange,
+              updatingRoot = _context4.updatingRoot;
 
 
           if (afterUpdate || afterUpdateRoot) {
@@ -887,13 +931,28 @@
         return childContext;
       }
     }, {
+      key: 'handleDelete',
+      value: function handleDelete() {
+        var _props11 = this.props,
+            afterDelete = _props11.afterDelete,
+            afterError = _props11.afterError;
+        var resource = this.state.resource;
+
+
+        resource.destroy().then(function () {
+          afterDelete && afterDelete(resource);
+        }).catch(function (error) {
+          afterError && afterError(error);
+        });
+      }
+    }, {
       key: 'handleSubmit',
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props9 = this.props,
-            onSubmit = _props9.onSubmit,
-            onInvalidSubmit = _props9.onInvalidSubmit;
+        var _props12 = this.props,
+            onSubmit = _props12.onSubmit,
+            onInvalidSubmit = _props12.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -937,13 +996,13 @@
         var _this7 = this;
 
         var isNestedResource = this.context.isNestedResource;
-        var _props10 = this.props,
-            afterError = _props10.afterError,
-            children = _props10.children,
-            className = _props10.className,
-            component = _props10.component,
-            componentProps = _props10.componentProps,
-            componentRef = _props10.componentRef;
+        var _props13 = this.props,
+            afterError = _props13.afterError,
+            children = _props13.children,
+            className = _props13.className,
+            component = _props13.component,
+            componentProps = _props13.componentProps,
+            componentRef = _props13.componentRef;
         var resource = this.state.resource;
 
 
@@ -952,6 +1011,7 @@
           body = _react2.default.createElement(component, _extends({}, componentProps, {
             afterUpdate: this.afterUpdate,
             afterError: afterError,
+            onDelete: this.handleDelete,
             onSubmit: this.handleSubmit,
             subject: resource,
             ref: function ref(c) {
@@ -996,6 +1056,7 @@
   }(_react2.default.PureComponent);
 
   Resource.propTypes = {
+    afterDelete: _propTypes2.default.func,
     afterError: _propTypes2.default.func,
     afterUpdate: _propTypes2.default.func,
     children: _propTypes2.default.oneOfType([_propTypes2.default.array, _propTypes2.default.node]),

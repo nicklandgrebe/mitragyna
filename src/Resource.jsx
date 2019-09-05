@@ -1,5 +1,6 @@
 export class Resource extends React.PureComponent {
   static propTypes = {
+    afterDelete: PropTypes.func,
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
     children: PropTypes.oneOfType([
@@ -206,6 +207,20 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
+  handleDelete() {
+    const { afterDelete, afterError } = this.props
+
+    const { resource } = this.state
+
+    resource.destroy()
+    .then(() => {
+      afterDelete && afterDelete(resource)
+    })
+    .catch((error) => {
+      afterError && afterError(error)
+    })
+  }
+
   handleSubmit(e, callback) {
     if(e) e.preventDefault();
 
@@ -258,6 +273,7 @@ export class Resource extends React.PureComponent {
         ...componentProps,
         afterUpdate: this.afterUpdate,
         afterError,
+        onDelete: this.handleDelete,
         onSubmit: this.handleSubmit,
         subject: resource,
         ref: (c) => { this.componentRef = c; componentRef(c) }

@@ -4,6 +4,11 @@ import ActiveResource from 'active-resource';
 import _ from 'underscore';
 
 export class Collection extends React.PureComponent {
+  static contextTypes = {
+    resource: PropTypes.object,
+    updateRoot: PropTypes.func
+  }
+
   static propTypes = {
     children: PropTypes.oneOfType([
       PropTypes.array,
@@ -13,15 +18,20 @@ export class Collection extends React.PureComponent {
     blankComponent: PropTypes.func,
     component: PropTypes.func,
     componentProps: PropTypes.object,
+    onBuild: PropTypes.func,
+    onDelete: PropTypes.func,
+    onReplace: PropTypes.func,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
     ]).isRequired,
     reflection: PropTypes.string,
+    wrapperComponent: PropTypes.oneOfType(PropTypes.func, PropTypes.string)
   };
 
   static defaultProps = {
-    inlineRows: false
+    inlineRows: false,
+    wrapperComponent: 'section'
   };
 
   // link to global state by enabling afterLoad, afterAdd, afterRemove, afterUpdate callbacks that can call
@@ -31,15 +41,8 @@ export class Collection extends React.PureComponent {
     super();
 
     this.state = {
-      target: ActiveResource.prototype.Collection.build()
+      target: ActiveResource.Collection.build()
     };
-
-    _.bindAll(this,
-      'buildOnTarget',
-      'cloneTarget',
-      'replaceOnTarget',
-      'removeFromTarget',
-    );
   }
 
   componentDidMount() {
@@ -50,66 +53,88 @@ export class Collection extends React.PureComponent {
     this.setTarget(nextProps);
   }
 
-  setTarget(props) {
-    const { subject } = props;
-
+  setTarget({ subject }) {
     this.setState({ target: subject.target() })
   }
 
-  buildOnTarget(attributes) {
-    const { subject } = this.props;
-    let target = this.cloneTarget();
+  buildResource = () => {
+    const { onBuild, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.push(subject.build(attributes));
-
-    this.setState({ target: target });
+    if(resource) {
+      const newResource = resource[reflection.name]().build()
+      updateRoot(newResource)
+    } else {
+      onBuild()
+    }
   }
 
-  replaceOnTarget(newItem, oldItem) {
-    let target = this.cloneTarget();
+  replaceResource(newItem, oldItem) {
+    const { onReplace, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.replace(oldItem, newItem);
-
-    return this.setState({ target });
+    if(resource) {
+      const newResource = resource.clone()
+      resource[reflection.name]().target().replace(oldItem, newItem)
+      updateRoot(newResource)
+    } else {
+      onReplace(newItem, oldItem)
+    }
   }
 
-  removeFromTarget(item) {
-    let target = this.cloneTarget();
+  deleteResource(item) {
+    const { onDelete, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.delete(item);
-
-    return this.setState({ target });
-  }
-
-  cloneTarget() {
-    return this.state.target.clone();
+    if(resource) {
+      const newResource = resource.clone()
+      resource[reflection.name]().target().delete(item)
+      updateRoot(newResource)
+    } else {
+      onDelete(item)
+    }
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, reflection } = this.props;
-    const { target } = this.state;
+    const { blankComponent, children, className, component, componentProps, reflection, wrapperComponent } = this.props;
+    const { subject } = this.state;
 
-    return (
-      <section className={ className }>
+    const target = subject.target()
+
+    const body =
+      <React.Fragment>
         {
           target.size() > 0 ? (
             target.map((t, indexOf) =>
-              <Resource afterUpdate={this.replaceOnTarget}
-                        component={component} componentProps={{...componentProps, indexOf}}
-                        key={t.id || (t.klass().className + '-' + indexOf)}
-                        reflection={reflection}
-                        subject={t}>
-
-
+              <Resource
+                afterDelete={this.deleteResource}
+                afterUpdate={this.replaceResource}
+                component={component}
+                componentProps={{
+                  ...componentProps,
+                  indexOf
+                }}
+                key={t.id || (t.klass().className + '-' + indexOf)}
+                reflection={reflection}
+                subject={t}
+              >
                 {children}
               </Resource>
             ).toArray()
           ) : (blankComponent != null &&
-            blankComponent()
+            React.createElement(blankComponent)
           )
         }
-      </section>
-    );
+      </React.Fragment>
+
+    return React.createElement(
+      wrapperComponent,
+      {
+        className,
+        onAdd: this.buildResource
+      },
+      body
+    )
   }
 }
 
@@ -531,6 +556,7 @@ export class Field extends React.Component {
 
 export class Resource extends React.PureComponent {
   static propTypes = {
+    afterDelete: PropTypes.func,
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
     children: PropTypes.oneOfType([
@@ -737,6 +763,20 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
+  handleDelete() {
+    const { afterDelete, afterError } = this.props
+
+    const { resource } = this.state
+
+    resource.destroy()
+    .then(() => {
+      afterDelete && afterDelete(resource)
+    })
+    .catch((error) => {
+      afterError && afterError(error)
+    })
+  }
+
   handleSubmit(e, callback) {
     if(e) e.preventDefault();
 
@@ -789,6 +829,7 @@ export class Resource extends React.PureComponent {
         ...componentProps,
         afterUpdate: this.afterUpdate,
         afterError,
+        onDelete: this.handleDelete,
         onSubmit: this.handleSubmit,
         subject: resource,
         ref: (c) => { this.componentRef = c; componentRef(c) }
