@@ -241,6 +241,7 @@ export class Field extends React.Component {
 
     // Set initial value to that of the resources
     this.setState({
+      resource,
       value: this.valueFor(resource, this.props)
     });
 
@@ -253,9 +254,13 @@ export class Field extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState, prevContext) {
-    const { resource: prevResource } = prevContext
+  componentDidUpdate(prevProps, prevState) {
+    const { resource: prevResource } = prevState
     const { resource } = this.context
+
+    if(prevResource !== resource) {
+      this.setState({ resource })
+    }
 
     if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
       this.setState({
