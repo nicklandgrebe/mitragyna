@@ -837,6 +837,8 @@
     }, {
       key: 'assignChanges',
       value: function assignChanges() {
+        var _this6 = this;
+
         var _state2 = this.state,
             queuedChanges = _state2.queuedChanges,
             resource = _state2.resource;
@@ -846,14 +848,14 @@
 
         var newResource = resource.assignAttributes(queuedChanges);
 
-        this.setState({ queuedChanges: {} });
-
-        this.afterUpdate(newResource);
+        this.setState({ queuedChanges: {} }, function () {
+          return _this6.afterUpdate(newResource);
+        });
       }
     }, {
       key: 'queueChange',
       value: function queueChange(change) {
-        var _this6 = this;
+        var _this7 = this;
 
         var afterUpdate = this.props.afterUpdate;
         var _state3 = this.state,
@@ -865,7 +867,7 @@
         this.setState({
           queuedChanges: _extends({}, queuedChanges, change)
         }, function () {
-          var _context2 = _this6.context,
+          var _context2 = _this7.context,
               afterUpdateRoot = _context2.afterUpdateRoot,
               queueReflectionChange = _context2.queueReflectionChange,
               updatingRoot = _context2.updatingRoot;
@@ -874,15 +876,15 @@
           if (afterUpdate || afterUpdateRoot) {
             if (inverseReflection) {
               if (updatingRoot) {
-                queueReflectionChange(_this6);
+                queueReflectionChange(_this7);
               } else {
-                _this6.assignChanges();
+                _this7.assignChanges();
               }
             } else {
-              if (!updating) _this6.assignChanges();
+              if (!updating) _this7.assignChanges();
             }
           } else {
-            _this6.assignChanges();
+            _this7.assignChanges();
           }
         });
       }
@@ -993,7 +995,7 @@
     }, {
       key: 'render',
       value: function render() {
-        var _this7 = this;
+        var _this8 = this;
 
         var isNestedResource = this.context.isNestedResource;
         var _props11 = this.props,
@@ -1016,7 +1018,7 @@
           onSubmit: this.handleSubmit,
           subject: resource,
           ref: function ref(c) {
-            _this7.componentRef = c;componentRef(c);
+            _this8.componentRef = c;componentRef(c);
           }
         }));
 

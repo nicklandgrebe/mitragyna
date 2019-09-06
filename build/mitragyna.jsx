@@ -695,9 +695,7 @@ export class Resource extends React.Component {
 
     var newResource = resource.assignAttributes(queuedChanges);
 
-    this.setState({ queuedChanges: {} });
-
-    this.afterUpdate(newResource);
+    this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }
 
   queueChange(change) {
