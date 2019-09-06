@@ -163,7 +163,7 @@
       value: function setTarget(_ref) {
         var subject = _ref.subject;
 
-        this.setState({ target: subject.target() });
+        this.setState({ target: subject.target && subject.target() || subject });
       }
     }, {
       key: 'replaceResource',

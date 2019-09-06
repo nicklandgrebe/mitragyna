@@ -54,7 +54,7 @@ export class Collection extends React.PureComponent {
   }
 
   setTarget({ subject }) {
-    this.setState({ target: subject.target() })
+    this.setState({ target: subject.target && subject.target() || subject })
   }
 
   buildResource = () => {
