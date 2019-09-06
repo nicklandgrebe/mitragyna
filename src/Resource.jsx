@@ -51,6 +51,7 @@ export class Resource extends React.PureComponent {
       'queueReflectionChange',
       'shiftReflectionQueue',
       'queueChange',
+      'handleDelete',
       'handleSubmit',
       'updateRoot'
     );

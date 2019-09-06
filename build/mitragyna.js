@@ -744,7 +744,7 @@
 
       var _this5 = _possibleConstructorReturn(this, (Resource.__proto__ || Object.getPrototypeOf(Resource)).call(this));
 
-      _underscore2.default.bindAll(_this5, 'afterUpdate', 'assignChanges', 'queueReflectionChange', 'shiftReflectionQueue', 'queueChange', 'handleSubmit', 'updateRoot');
+      _underscore2.default.bindAll(_this5, 'afterUpdate', 'assignChanges', 'queueReflectionChange', 'shiftReflectionQueue', 'queueChange', 'handleDelete', 'handleSubmit', 'updateRoot');
 
       var root = context.root;
       var reflection = props.reflection,
