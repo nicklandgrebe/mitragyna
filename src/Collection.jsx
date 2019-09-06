@@ -64,8 +64,7 @@ export class Collection extends React.Component {
     const { resource, updateRoot } = this.context
 
     if(resource) {
-      const newResource = resource[reflection]().build()
-      updateRoot(newResource)
+      updateRoot(resource[reflection]().build())
     } else {
       onBuild()
     }
@@ -77,7 +76,7 @@ export class Collection extends React.Component {
 
     if(resource) {
       const newResource = resource.clone()
-      resource[reflection]().target().replace(oldItem, newItem)
+      newResource[reflection]().target().replace(oldItem, newItem)
       updateRoot(newResource)
     } else {
       onReplace(newItem, oldItem)
@@ -90,7 +89,7 @@ export class Collection extends React.Component {
 
     if(resource) {
       const newResource = resource.clone()
-      resource[reflection]().target().delete(item)
+      newResource[reflection]().target().delete(item)
       updateRoot(newResource)
     } else {
       onDelete(item)
