@@ -54,7 +54,7 @@ export class Collection extends React.PureComponent {
     this.setTarget(nextProps);
   }
 
-  setTarget({ subject }) {
+  setTarget = ({ subject }) => {
     this.setState({ target: subject.target && subject.target() || subject })
   }
 
@@ -70,7 +70,7 @@ export class Collection extends React.PureComponent {
     }
   }
 
-  replaceResource(newItem, oldItem) {
+  replaceResource = (newItem, oldItem) => {
     const { onReplace, reflection, subject } = this.props
     const { resource, updateRoot } = this.context
 
@@ -83,7 +83,7 @@ export class Collection extends React.PureComponent {
     }
   }
 
-  deleteResource(item) {
+  deleteResource = (item) => {
     const { onDelete, reflection, subject } = this.props
     const { resource, updateRoot } = this.context
 

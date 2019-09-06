@@ -124,6 +124,12 @@
 
       var _this = _possibleConstructorReturn(this, (Collection.__proto__ || Object.getPrototypeOf(Collection)).call(this));
 
+      _this.setTarget = function (_ref) {
+        var subject = _ref.subject;
+
+        _this.setState({ target: subject.target && subject.target() || subject });
+      };
+
       _this.buildResource = function () {
         var _this$props = _this.props,
             onBuild = _this$props.onBuild,
@@ -139,6 +145,44 @@
           updateRoot(newResource);
         } else {
           onBuild();
+        }
+      };
+
+      _this.replaceResource = function (newItem, oldItem) {
+        var _this$props2 = _this.props,
+            onReplace = _this$props2.onReplace,
+            reflection = _this$props2.reflection,
+            subject = _this$props2.subject;
+        var _this$context2 = _this.context,
+            resource = _this$context2.resource,
+            updateRoot = _this$context2.updateRoot;
+
+
+        if (resource) {
+          var newResource = resource.clone();
+          resource[reflection]().target().replace(oldItem, newItem);
+          updateRoot(newResource);
+        } else {
+          onReplace(newItem, oldItem);
+        }
+      };
+
+      _this.deleteResource = function (item) {
+        var _this$props3 = _this.props,
+            onDelete = _this$props3.onDelete,
+            reflection = _this$props3.reflection,
+            subject = _this$props3.subject;
+        var _this$context3 = _this.context,
+            resource = _this$context3.resource,
+            updateRoot = _this$context3.updateRoot;
+
+
+        if (resource) {
+          var newResource = resource.clone();
+          resource[reflection]().target().delete(item);
+          updateRoot(newResource);
+        } else {
+          onDelete(item);
         }
       };
 
@@ -159,66 +203,19 @@
         this.setTarget(nextProps);
       }
     }, {
-      key: 'setTarget',
-      value: function setTarget(_ref) {
-        var subject = _ref.subject;
-
-        this.setState({ target: subject.target && subject.target() || subject });
-      }
-    }, {
-      key: 'replaceResource',
-      value: function replaceResource(newItem, oldItem) {
-        var _props = this.props,
-            onReplace = _props.onReplace,
-            reflection = _props.reflection,
-            subject = _props.subject;
-        var _context = this.context,
-            resource = _context.resource,
-            updateRoot = _context.updateRoot;
-
-
-        if (resource) {
-          var newResource = resource.clone();
-          resource[reflection]().target().replace(oldItem, newItem);
-          updateRoot(newResource);
-        } else {
-          onReplace(newItem, oldItem);
-        }
-      }
-    }, {
-      key: 'deleteResource',
-      value: function deleteResource(item) {
-        var _props2 = this.props,
-            onDelete = _props2.onDelete,
-            reflection = _props2.reflection,
-            subject = _props2.subject;
-        var _context2 = this.context,
-            resource = _context2.resource,
-            updateRoot = _context2.updateRoot;
-
-
-        if (resource) {
-          var newResource = resource.clone();
-          resource[reflection]().target().delete(item);
-          updateRoot(newResource);
-        } else {
-          onDelete(item);
-        }
-      }
-    }, {
       key: 'render',
       value: function render() {
         var _this2 = this;
 
-        var _props3 = this.props,
-            blankComponent = _props3.blankComponent,
-            children = _props3.children,
-            className = _props3.className,
-            component = _props3.component,
-            componentProps = _props3.componentProps,
-            readOnly = _props3.readOnly,
-            reflection = _props3.reflection,
-            wrapperComponent = _props3.wrapperComponent;
+        var _props = this.props,
+            blankComponent = _props.blankComponent,
+            children = _props.children,
+            className = _props.className,
+            component = _props.component,
+            componentProps = _props.componentProps,
+            readOnly = _props.readOnly,
+            reflection = _props.reflection,
+            wrapperComponent = _props.wrapperComponent;
         var target = this.state.target;
 
 
@@ -296,9 +293,9 @@
       key: 'render',
       value: function render() {
         var resource = this.context.resource;
-        var _props4 = this.props,
-            component = _props4.component,
-            field = _props4.field;
+        var _props2 = this.props,
+            component = _props2.component,
+            field = _props2.field;
 
 
         var errors = resource.errors().forField(field);
@@ -412,10 +409,10 @@
     }, {
       key: 'classNames',
       value: function classNames() {
-        var _props5 = this.props,
-            className = _props5.className,
-            invalidClassName = _props5.invalidClassName,
-            name = _props5.name;
+        var _props3 = this.props,
+            className = _props3.className,
+            invalidClassName = _props3.invalidClassName,
+            name = _props3.name;
         var resource = this.context.resource;
 
 
@@ -461,9 +458,9 @@
     }, {
       key: 'customInputProps',
       value: function customInputProps() {
-        var _props6 = this.props,
-            component = _props6.component,
-            type = _props6.type;
+        var _props4 = this.props,
+            component = _props4.component,
+            type = _props4.type;
 
 
         var omittedProps;
@@ -545,9 +542,9 @@
     }, {
       key: 'renderRadioComponent',
       value: function renderRadioComponent() {
-        var _props7 = this.props,
-            component = _props7.component,
-            value = _props7.value;
+        var _props5 = this.props,
+            component = _props5.component,
+            value = _props5.value;
         var radioValue = this.context.radioValue;
 
 
@@ -574,11 +571,11 @@
     }, {
       key: 'renderSelectComponent',
       value: function renderSelectComponent() {
-        var _props8 = this.props,
-            component = _props8.component,
-            includeBlank = _props8.includeBlank,
-            options = _props8.options,
-            optionsLabel = _props8.optionsLabel;
+        var _props6 = this.props,
+            component = _props6.component,
+            includeBlank = _props6.includeBlank,
+            options = _props6.options,
+            optionsLabel = _props6.optionsLabel;
 
 
         var selectOptions = null;
@@ -618,10 +615,10 @@
       value: function handleChange(e) {
         e.persist();
 
-        var _props9 = this.props,
-            max = _props9.max,
-            min = _props9.min,
-            type = _props9.type;
+        var _props7 = this.props,
+            max = _props7.max,
+            min = _props7.min,
+            type = _props7.type;
         var changeRadio = this.context.changeRadio;
 
 
@@ -653,12 +650,12 @@
     }, {
       key: 'afterChange',
       value: function afterChange() {
-        var _props10 = this.props,
-            name = _props10.name,
-            type = _props10.type,
-            options = _props10.options,
-            uncheckedValue = _props10.uncheckedValue,
-            value = _props10.value;
+        var _props8 = this.props,
+            name = _props8.name,
+            type = _props8.type,
+            options = _props8.options,
+            uncheckedValue = _props8.uncheckedValue,
+            value = _props8.value;
         var stateValue = this.state.value;
         var queueChange = this.context.queueChange;
 
@@ -781,10 +778,10 @@
       value: function componentWillReceiveProps(nextProps) {
         var afterUpdate = this.props.afterUpdate;
         var inverseReflection = this.state.inverseReflection;
-        var _context3 = this.context,
-            afterUpdateRoot = _context3.afterUpdateRoot,
-            queuedReflectionChanges = _context3.queuedReflectionChanges,
-            shiftReflectionQueue = _context3.shiftReflectionQueue;
+        var _context = this.context,
+            afterUpdateRoot = _context.afterUpdateRoot,
+            queuedReflectionChanges = _context.queuedReflectionChanges,
+            shiftReflectionQueue = _context.shiftReflectionQueue;
 
 
         this.setState({ resource: nextProps.subject });
@@ -866,10 +863,10 @@
         this.setState({
           queuedChanges: _extends({}, queuedChanges, change)
         }, function () {
-          var _context4 = _this6.context,
-              afterUpdateRoot = _context4.afterUpdateRoot,
-              queueReflectionChange = _context4.queueReflectionChange,
-              updatingRoot = _context4.updatingRoot;
+          var _context2 = _this6.context,
+              afterUpdateRoot = _context2.afterUpdateRoot,
+              queueReflectionChange = _context2.queueReflectionChange,
+              updatingRoot = _context2.updatingRoot;
 
 
           if (afterUpdate || afterUpdateRoot) {
@@ -934,9 +931,9 @@
     }, {
       key: 'handleDelete',
       value: function handleDelete() {
-        var _props11 = this.props,
-            afterDelete = _props11.afterDelete,
-            afterError = _props11.afterError;
+        var _props9 = this.props,
+            afterDelete = _props9.afterDelete,
+            afterError = _props9.afterError;
         var resource = this.state.resource;
 
 
@@ -951,9 +948,9 @@
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props12 = this.props,
-            onSubmit = _props12.onSubmit,
-            onInvalidSubmit = _props12.onInvalidSubmit;
+        var _props10 = this.props,
+            onSubmit = _props10.onSubmit,
+            onInvalidSubmit = _props10.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -997,13 +994,13 @@
         var _this7 = this;
 
         var isNestedResource = this.context.isNestedResource;
-        var _props13 = this.props,
-            afterError = _props13.afterError,
-            className = _props13.className,
-            component = _props13.component,
-            componentProps = _props13.componentProps,
-            componentRef = _props13.componentRef,
-            readOnly = _props13.readOnly;
+        var _props11 = this.props,
+            afterError = _props11.afterError,
+            className = _props11.className,
+            component = _props11.component,
+            componentProps = _props11.componentProps,
+            componentRef = _props11.componentRef,
+            readOnly = _props11.readOnly;
         var resource = this.state.resource;
 
 
