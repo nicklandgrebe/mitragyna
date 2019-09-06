@@ -135,7 +135,7 @@
 
 
         if (resource) {
-          var newResource = resource[reflection.name]().build();
+          var newResource = resource[reflection]().build();
           updateRoot(newResource);
         } else {
           onBuild();
@@ -179,7 +179,7 @@
 
         if (resource) {
           var newResource = resource.clone();
-          resource[reflection.name]().target().replace(oldItem, newItem);
+          resource[reflection]().target().replace(oldItem, newItem);
           updateRoot(newResource);
         } else {
           onReplace(newItem, oldItem);
@@ -199,7 +199,7 @@
 
         if (resource) {
           var newResource = resource.clone();
-          resource[reflection.name]().target().delete(item);
+          resource[reflection]().target().delete(item);
           updateRoot(newResource);
         } else {
           onDelete(item);

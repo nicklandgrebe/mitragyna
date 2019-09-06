@@ -63,7 +63,7 @@ export class Collection extends React.PureComponent {
     const { resource, updateRoot } = this.context
 
     if(resource) {
-      const newResource = resource[reflection.name]().build()
+      const newResource = resource[reflection]().build()
       updateRoot(newResource)
     } else {
       onBuild()
@@ -76,7 +76,7 @@ export class Collection extends React.PureComponent {
 
     if(resource) {
       const newResource = resource.clone()
-      resource[reflection.name]().target().replace(oldItem, newItem)
+      resource[reflection]().target().replace(oldItem, newItem)
       updateRoot(newResource)
     } else {
       onReplace(newItem, oldItem)
@@ -89,7 +89,7 @@ export class Collection extends React.PureComponent {
 
     if(resource) {
       const newResource = resource.clone()
-      resource[reflection.name]().target().delete(item)
+      resource[reflection]().target().delete(item)
       updateRoot(newResource)
     } else {
       onDelete(item)
