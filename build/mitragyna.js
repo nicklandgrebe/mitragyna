@@ -113,8 +113,8 @@
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var Collection = exports.Collection = function (_React$PureComponent) {
-    _inherits(Collection, _React$PureComponent);
+  var Collection = exports.Collection = function (_React$Component) {
+    _inherits(Collection, _React$Component);
 
     // link to global state by enabling afterLoad, afterAdd, afterRemove, afterUpdate callbacks that can call
     // an action linked to dispatch
@@ -251,7 +251,7 @@
     }]);
 
     return Collection;
-  }(_react2.default.PureComponent);
+  }(_react2.default.Component);
 
   Collection.contextTypes = {
     resource: _propTypes2.default.object,
@@ -277,8 +277,8 @@
     wrapperComponent: 'section'
   };
 
-  var ErrorsFor = exports.ErrorsFor = function (_React$Component) {
-    _inherits(ErrorsFor, _React$Component);
+  var ErrorsFor = exports.ErrorsFor = function (_React$Component2) {
+    _inherits(ErrorsFor, _React$Component2);
 
     function ErrorsFor() {
       _classCallCheck(this, ErrorsFor);
@@ -331,8 +331,8 @@
   };
   ;
 
-  var Field = exports.Field = function (_React$Component2) {
-    _inherits(Field, _React$Component2);
+  var Field = exports.Field = function (_React$Component3) {
+    _inherits(Field, _React$Component3);
 
     function Field() {
       _classCallCheck(this, Field);
@@ -735,8 +735,8 @@
     value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number])
   };
 
-  var Resource = exports.Resource = function (_React$PureComponent2) {
-    _inherits(Resource, _React$PureComponent2);
+  var Resource = exports.Resource = function (_React$Component4) {
+    _inherits(Resource, _React$Component4);
 
     function Resource(props, context) {
       _classCallCheck(this, Resource);
@@ -1047,7 +1047,7 @@
     }]);
 
     return Resource;
-  }(_react2.default.PureComponent);
+  }(_react2.default.Component);
 
   Resource.propTypes = {
     afterDelete: _propTypes2.default.func,

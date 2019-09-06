@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ActiveResource from 'active-resource';
 import _ from 'underscore';
 
-export class Collection extends React.PureComponent {
+export class Collection extends React.Component {
   static contextTypes = {
     resource: PropTypes.object,
     updateRoot: PropTypes.func
@@ -556,7 +556,7 @@ export class Field extends React.Component {
   }
 }
 
-export class Resource extends React.PureComponent {
+export class Resource extends React.Component {
   static propTypes = {
     afterDelete: PropTypes.func,
     afterError: PropTypes.func,
