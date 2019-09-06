@@ -21,6 +21,7 @@ export class Collection extends React.PureComponent {
     onBuild: PropTypes.func,
     onDelete: PropTypes.func,
     onReplace: PropTypes.func,
+    readOnly: PropTypes.bool,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
@@ -96,7 +97,7 @@ export class Collection extends React.PureComponent {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, reflection, wrapperComponent } = this.props;
+    const { blankComponent, children, className, component, componentProps, readOnly, reflection, wrapperComponent } = this.props;
     const { target } = this.state;
 
     const body =
@@ -113,6 +114,7 @@ export class Collection extends React.PureComponent {
                   indexOf
                 }}
                 key={t.id || (t.klass().className + '-' + indexOf)}
+                readOnly={readOnly}
                 reflection={reflection}
                 subject={t}
               >

@@ -216,6 +216,7 @@
             className = _props3.className,
             component = _props3.component,
             componentProps = _props3.componentProps,
+            readOnly = _props3.readOnly,
             reflection = _props3.reflection,
             wrapperComponent = _props3.wrapperComponent;
         var target = this.state.target;
@@ -235,6 +236,7 @@
                   indexOf: indexOf
                 }),
                 key: t.id || t.klass().className + '-' + indexOf,
+                readOnly: readOnly,
                 reflection: reflection,
                 subject: t
               },
@@ -266,6 +268,7 @@
     onBuild: _propTypes2.default.func,
     onDelete: _propTypes2.default.func,
     onReplace: _propTypes2.default.func,
+    readOnly: _propTypes2.default.bool,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
     reflection: _propTypes2.default.string,
     wrapperComponent: _propTypes2.default.oneOfType(_propTypes2.default.func, _propTypes2.default.string)
@@ -1000,7 +1003,8 @@
             className = _props13.className,
             component = _props13.component,
             componentProps = _props13.componentProps,
-            componentRef = _props13.componentRef;
+            componentRef = _props13.componentRef,
+            readOnly = _props13.readOnly;
         var resource = this.state.resource;
 
 
@@ -1026,6 +1030,8 @@
             { className: className },
             body
           );
+        } else if (readOnly) {
+          return body;
         } else {
           return _react2.default.createElement(
             'form',
@@ -1063,6 +1069,7 @@
     componentProps: _propTypes2.default.object,
     onInvalidSubmit: _propTypes2.default.func,
     onSubmit: _propTypes2.default.func,
+    readOnly: _propTypes2.default.bool,
     reflection: _propTypes2.default.string,
     subject: _propTypes2.default.object.isRequired
   };
