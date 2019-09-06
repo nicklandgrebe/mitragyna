@@ -999,7 +999,6 @@
         var isNestedResource = this.context.isNestedResource;
         var _props13 = this.props,
             afterError = _props13.afterError,
-            children = _props13.children,
             className = _props13.className,
             component = _props13.component,
             componentProps = _props13.componentProps,
@@ -1008,36 +1007,28 @@
         var resource = this.state.resource;
 
 
-        var body = void 0;
-        if (component) {
-          body = _react2.default.createElement(component, _extends({}, componentProps, {
-            afterUpdate: this.afterUpdate,
-            afterError: afterError,
-            onDelete: this.handleDelete,
-            onSubmit: this.handleSubmit,
-            subject: resource,
-            ref: function ref(c) {
-              _this7.componentRef = c;componentRef(c);
-            }
-          }));
-        } else {
-          body = children;
-        }
+        var isForm = !(isNestedResource || readOnly);
 
-        if (isNestedResource) {
-          return _react2.default.createElement(
-            'section',
-            { className: className },
-            body
-          );
-        } else if (readOnly) {
-          return body;
-        } else {
+        var body = _react2.default.createElement(component, _extends({}, componentProps, {
+          afterUpdate: this.afterUpdate,
+          afterError: afterError
+        }, !isForm && { className: className }, {
+          onDelete: this.handleDelete,
+          onSubmit: this.handleSubmit,
+          subject: resource,
+          ref: function ref(c) {
+            _this7.componentRef = c;componentRef(c);
+          }
+        }));
+
+        if (isForm) {
           return _react2.default.createElement(
             'form',
             { className: className, onSubmit: this.handleSubmit },
             body
           );
+        } else {
+          return body;
         }
       }
     }, {
@@ -1063,9 +1054,8 @@
     afterDelete: _propTypes2.default.func,
     afterError: _propTypes2.default.func,
     afterUpdate: _propTypes2.default.func,
-    children: _propTypes2.default.oneOfType([_propTypes2.default.array, _propTypes2.default.node]),
     className: _propTypes2.default.string,
-    component: _propTypes2.default.func,
+    component: _propTypes2.default.func.isRequired,
     componentProps: _propTypes2.default.object,
     onInvalidSubmit: _propTypes2.default.func,
     onSubmit: _propTypes2.default.func,

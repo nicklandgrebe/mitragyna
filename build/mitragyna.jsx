@@ -559,12 +559,8 @@ export class Resource extends React.PureComponent {
     afterDelete: PropTypes.func,
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
-    children: PropTypes.oneOfType([
-      PropTypes.array,
-      PropTypes.node,
-    ]),
     className: PropTypes.string,
-    component: PropTypes.func,
+    component: PropTypes.func.isRequired,
     componentProps: PropTypes.object,
     onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
@@ -821,34 +817,26 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef, readOnly } = this.props;
+    const { afterError, className, component, componentProps, componentRef, readOnly } = this.props;
     const { resource } = this.state;
 
-    let body;
-    if(component) {
-      body = React.createElement(component, {
-        ...componentProps,
-        afterUpdate: this.afterUpdate,
-        afterError,
-        onDelete: this.handleDelete,
-        onSubmit: this.handleSubmit,
-        subject: resource,
-        ref: (c) => { this.componentRef = c; componentRef(c) }
-      });
-    } else {
-      body = children;
-    }
+    const isForm = !(isNestedResource || readOnly)
 
-    if(isNestedResource) {
-      return (
-        <section className={ className }>
-          { body }
-        </section>
-      );
-    } else if(readOnly) {
-      return body
-    } else {
+    let body = React.createElement(component, {
+      ...componentProps,
+      afterUpdate: this.afterUpdate,
+      afterError,
+      ...!isForm && { className },
+      onDelete: this.handleDelete,
+      onSubmit: this.handleSubmit,
+      subject: resource,
+      ref: (c) => { this.componentRef = c; componentRef(c) }
+    });
+
+    if(isForm) {
       return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
+    } else {
+      return body
     }
   }
 
