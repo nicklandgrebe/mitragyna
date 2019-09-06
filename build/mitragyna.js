@@ -215,7 +215,8 @@
             componentProps = _props.componentProps,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
-            wrapperComponent = _props.wrapperComponent;
+            wrapperComponent = _props.wrapperComponent,
+            wrapperProps = _props.wrapperProps;
         var target = this.state.target;
 
 
@@ -242,10 +243,10 @@
           }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
         );
 
-        return _react2.default.createElement(wrapperComponent, {
+        return _react2.default.createElement(wrapperComponent, _extends({
           className: className,
           onBuild: this.buildResource
-        }, body);
+        }, wrapperProps), body);
       }
     }]);
 
@@ -268,7 +269,8 @@
     readOnly: _propTypes2.default.bool,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
     reflection: _propTypes2.default.string,
-    wrapperComponent: _propTypes2.default.oneOfType(_propTypes2.default.func, _propTypes2.default.string)
+    wrapperComponent: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.string]),
+    wrapperProps: _propTypes2.default.object
   };
   Collection.defaultProps = {
     inlineRows: false,

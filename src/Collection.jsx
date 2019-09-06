@@ -27,7 +27,8 @@ export class Collection extends React.PureComponent {
       PropTypes.func,
     ]).isRequired,
     reflection: PropTypes.string,
-    wrapperComponent: PropTypes.oneOfType(PropTypes.func, PropTypes.string)
+    wrapperComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    wrapperProps: PropTypes.object
   };
 
   static defaultProps = {
@@ -97,7 +98,7 @@ export class Collection extends React.PureComponent {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, readOnly, reflection, wrapperComponent } = this.props;
+    const { blankComponent, children, className, component, componentProps, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
     const { target } = this.state;
 
     const body =
@@ -131,7 +132,8 @@ export class Collection extends React.PureComponent {
       wrapperComponent,
       {
         className,
-        onBuild: this.buildResource
+        onBuild: this.buildResource,
+        ...wrapperProps
       },
       body
     )
