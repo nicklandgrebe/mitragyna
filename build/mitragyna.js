@@ -507,7 +507,7 @@
           default:
             var val = resource[name];
 
-            return val ? val : '';
+            return !(_underscore2.default.isUndefined(val) || _underscore2.default.isNull(val)) ? val : '';
         }
       }
     }, {
