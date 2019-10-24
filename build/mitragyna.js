@@ -130,7 +130,7 @@
         _this.setState({ target: subject.target && subject.target() || subject });
       };
 
-      _this.buildResource = function () {
+      _this.buildResource = function (arg) {
         var _this$props = _this.props,
             onBuild = _this$props.onBuild,
             reflection = _this$props.reflection,
@@ -141,9 +141,9 @@
 
 
         if (resource) {
-          updateRoot(resource[reflection]().build());
+          updateRoot(resource[reflection]().build(arg));
         } else {
-          onBuild();
+          onBuild(arg);
         }
       };
 
@@ -401,6 +401,7 @@
           this.setState({ resource: resource });
         }
 
+        // FIXME: Check if value changed in order to set value
         if (!(_underscore2.default.isNull(prevResource.id) || _underscore2.default.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
           this.setState({
             value: this.valueFor(resource, this.props)

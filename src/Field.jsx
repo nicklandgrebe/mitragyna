@@ -111,6 +111,7 @@ export class Field extends React.Component {
       this.setState({ resource })
     }
 
+    // FIXME: Check if value changed in order to set value
     if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
       this.setState({
         value: this.valueFor(resource, this.props)

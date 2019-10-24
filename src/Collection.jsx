@@ -59,14 +59,14 @@ export class Collection extends React.Component {
     this.setState({ target: subject.target && subject.target() || subject })
   }
 
-  buildResource = () => {
+  buildResource = (arg) => {
     const { onBuild, reflection, subject } = this.props
     const { resource, updateRoot } = this.context
 
     if(resource) {
-      updateRoot(resource[reflection]().build())
+      updateRoot(resource[reflection]().build(arg))
     } else {
-      onBuild()
+      onBuild(arg)
     }
   }
 
