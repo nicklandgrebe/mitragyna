@@ -64,7 +64,7 @@ export class Collection extends React.Component {
     const { resource, updateRoot } = this.context
 
     if(resource) {
-      updateRoot(resource[reflection]().build(arg))
+      updateRoot(resource[reflection]().build())
     } else {
       onBuild(arg)
     }

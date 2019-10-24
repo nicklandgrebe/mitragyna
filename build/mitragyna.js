@@ -141,7 +141,7 @@
 
 
         if (resource) {
-          updateRoot(resource[reflection]().build(arg));
+          updateRoot(resource[reflection]().build());
         } else {
           onBuild(arg);
         }
