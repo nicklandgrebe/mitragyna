@@ -587,7 +587,7 @@
 
 
         var selectOptions = null;
-        if (options.empty()) {
+        if (_underscore2.default.isArray(options) && _underscore2.default.isEmpty(options) || options.empty()) {
           throw 'Input type="select" must have options';
         } else {
           selectOptions = options.map(function (o) {
