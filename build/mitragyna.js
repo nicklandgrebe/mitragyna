@@ -503,8 +503,14 @@
             }
           case 'radioGroup':
           case 'select':
-            var val = resource[name]();
-            return val ? val.id : '';
+            var propForName = resource[name];
+
+            if (_underscore2.default.isFunction(propForName)) {
+              var val = propForName();
+              return val ? val.id : '';
+            } else {
+              return propForName;
+            }
           default:
             var val = resource[name];
 
@@ -585,11 +591,25 @@
           throw 'Input type="select" must have options';
         } else {
           selectOptions = options.map(function (o) {
-            return _react2.default.createElement(
-              'option',
-              { key: o.id, value: o.id },
-              _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
-            );
+            if (_underscore2.default.isFunction(o)) {
+              return _react2.default.createElement(
+                'option',
+                { key: o.id, value: o.id },
+                _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
+              );
+            } else if (_underscore2.default.isArray(o)) {
+              return _react2.default.createElement(
+                'option',
+                { key: o[0], value: o[0] },
+                o[1]
+              );
+            } else {
+              return _react2.default.createElement(
+                'option',
+                { key: o, value: o },
+                o
+              );
+            }
           });
           if (includeBlank) {
             selectOptions.unshift(_react2.default.createElement('option', { key: -1, value: '' }));
@@ -675,9 +695,13 @@
             mappedValue = value;
             break;
           case 'select':
-            mappedValue = options.detect(function (o) {
-              return o.id === stateValue;
-            });
+            if (_underscore2.default.isFunction(options.first())) {
+              mappedValue = options.detect(function (o) {
+                return o.id === stateValue;
+              });
+            } else {
+              mappedValue = stateValue;
+            }
             break;
           default:
             mappedValue = stateValue;
@@ -727,7 +751,7 @@
     component: _propTypes2.default.func,
     includeBlank: _propTypes2.default.bool,
     name: _propTypes2.default.string.isRequired,
-    options: _propTypes2.default.instanceOf(_activeResource2.default.Collection),
+    options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
     optionsLabel: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.func]),
     type: _propTypes2.default.string.isRequired,
     uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number]),

@@ -19,7 +19,10 @@ export class Field extends React.Component {
     component: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
-    options: PropTypes.instanceOf(ActiveResource.Collection),
+    options: PropTypes.oneOfType([
+      PropTypes.instanceOf(ActiveResource.Collection),
+      PropTypes.array
+    ]),
     optionsLabel: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
@@ -197,8 +200,14 @@ export class Field extends React.Component {
         }
       case 'radioGroup':
       case 'select':
-        var val = resource[name]();
-        return val ? val.id : '';
+        var propForName = resource[name]
+
+        if(_.isFunction(propForName)) {
+          var val = propForName();
+          return val ? val.id : '';
+        } else {
+          return propForName
+        }
       default:
         var val = resource[name];
 
@@ -266,15 +275,25 @@ export class Field extends React.Component {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => {
-        return <option key={o.id} value={o.id}>
-          {
-            _.isString(optionsLabel) ? (
-              o[optionsLabel]
-            ) : (
-              optionsLabel(o)
-            )
-          }
-        </option>;
+        if(_.isFunction(o)) {
+          return <option key={o.id} value={o.id}>
+            {
+              _.isString(optionsLabel) ? (
+                o[optionsLabel]
+              ) : (
+                optionsLabel(o)
+              )
+            }
+          </option>;
+        } else if(_.isArray(o)) {
+          return <option key={o[0]} value={o[0]}>
+            {o[1]}
+          </option>
+        } else {
+          return <option key={o} value={o}>
+            {o}
+          </option>
+        }
       });
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
@@ -350,7 +369,11 @@ export class Field extends React.Component {
         mappedValue = value;
         break;
       case 'select':
-        mappedValue = options.detect((o) => o.id === stateValue);
+        if(_.isFunction(options.first())) {
+          mappedValue = options.detect((o) => o.id === stateValue);
+        } else {
+          mappedValue = stateValue
+        }
         break;
       default:
         mappedValue = stateValue;
