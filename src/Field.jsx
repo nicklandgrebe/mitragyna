@@ -271,7 +271,7 @@ export class Field extends React.Component {
     const { component, includeBlank, options, optionsLabel } = this.props;
 
     let selectOptions = null;
-    if ((_.isArray(options) && _.isEmpty(options)) || options.empty()) {
+    if ((_.isArray(options) && _.isEmpty(options)) || (!_.isArray(options) && options.empty())) {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => {
