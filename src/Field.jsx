@@ -298,6 +298,8 @@ export class Field extends React.Component {
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
       }
+
+      if(!_.isArray(selectOptions)) selectOptions = selectOptions.toArray()
     }
 
     let finalComponent = component || 'select';
@@ -305,7 +307,7 @@ export class Field extends React.Component {
       ...this.commonInputProps(),
       ...this.customInputProps(),
       value: this.state.value,
-    }, selectOptions.toArray());
+    }, selectOptions);
   }
 
   renderTextareaComponent() {

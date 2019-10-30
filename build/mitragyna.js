@@ -614,12 +614,14 @@
           if (includeBlank) {
             selectOptions.unshift(_react2.default.createElement('option', { key: -1, value: '' }));
           }
+
+          if (!_underscore2.default.isArray(selectOptions)) selectOptions = selectOptions.toArray();
         }
 
         var finalComponent = component || 'select';
         return _react2.default.createElement(finalComponent, _extends({}, this.commonInputProps(), this.customInputProps(), {
           value: this.state.value
-        }), selectOptions.toArray());
+        }), selectOptions);
       }
     }, {
       key: 'renderTextareaComponent',
