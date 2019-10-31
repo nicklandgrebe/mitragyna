@@ -697,12 +697,12 @@
             mappedValue = value;
             break;
           case 'select':
-            if (_underscore2.default.isFunction(options.first())) {
+            if (_underscore2.default.isArray(options)) {
+              mappedValue = stateValue;
+            } else {
               mappedValue = options.detect(function (o) {
                 return o.id === stateValue;
               });
-            } else {
-              mappedValue = stateValue;
             }
             break;
           default:

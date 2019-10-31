@@ -371,10 +371,10 @@ export class Field extends React.Component {
         mappedValue = value;
         break;
       case 'select':
-        if(_.isFunction(options.first())) {
-          mappedValue = options.detect((o) => o.id === stateValue);
-        } else {
+        if(_.isArray(options)) {
           mappedValue = stateValue
+        } else {
+          mappedValue = options.detect((o) => o.id === stateValue)
         }
         break;
       default:
