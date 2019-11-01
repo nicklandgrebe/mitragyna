@@ -506,7 +506,7 @@
             var propForName = resource[name];
 
             if (_underscore2.default.isFunction(propForName)) {
-              var val = propForName();
+              var val = resource[name]();
               return val ? val.id : '';
             } else {
               return propForName;

@@ -203,7 +203,7 @@ export class Field extends React.Component {
         var propForName = resource[name]
 
         if(_.isFunction(propForName)) {
-          var val = propForName();
+          var val = resource[name]();
           return val ? val.id : '';
         } else {
           return propForName
