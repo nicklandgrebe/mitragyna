@@ -479,9 +479,6 @@
 
         return _underscore2.default.omit(this.props, _underscore2.default.keys(omittedProps));
       }
-
-      // TODO: Add support for non-resource options on select and radioGroup
-
     }, {
       key: 'valueFor',
       value: function valueFor(resource, props) {
@@ -591,13 +588,7 @@
           throw 'Input type="select" must have options';
         } else {
           selectOptions = options.map(function (o) {
-            if (_underscore2.default.isFunction(o)) {
-              return _react2.default.createElement(
-                'option',
-                { key: o.id, value: o.id },
-                _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
-              );
-            } else if (_underscore2.default.isArray(o)) {
+            if (_underscore2.default.isArray(o)) {
               return _react2.default.createElement(
                 'option',
                 { key: o[0], value: o[0] },
@@ -606,8 +597,8 @@
             } else {
               return _react2.default.createElement(
                 'option',
-                { key: o, value: o },
-                o
+                { key: o.id, value: o.id },
+                _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
               );
             }
           });

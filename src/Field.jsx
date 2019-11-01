@@ -184,7 +184,6 @@ export class Field extends React.Component {
     return _.omit(this.props, _.keys(omittedProps));
   }
 
-  // TODO: Add support for non-resource options on select and radioGroup
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
 
@@ -275,7 +274,11 @@ export class Field extends React.Component {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => {
-        if(_.isFunction(o)) {
+        if(_.isArray(o)) {
+          return <option key={o[0]} value={o[0]}>
+            {o[1]}
+          </option>
+        } else {
           return <option key={o.id} value={o.id}>
             {
               _.isString(optionsLabel) ? (
@@ -285,14 +288,6 @@ export class Field extends React.Component {
               )
             }
           </option>;
-        } else if(_.isArray(o)) {
-          return <option key={o[0]} value={o[0]}>
-            {o[1]}
-          </option>
-        } else {
-          return <option key={o} value={o}>
-            {o}
-          </option>
         }
       });
       if (includeBlank) {
