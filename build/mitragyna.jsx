@@ -576,6 +576,7 @@ export class Resource extends React.PureComponent {
   static defaultProps = {
     componentProps: {},
     componentRef: _.noop,
+    rnComponentProps: {}
   };
 
   constructor(props, context) {
@@ -783,7 +784,7 @@ export class Resource extends React.PureComponent {
 
   render() {
     const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef, rnComponent } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, rnComponent, rnComponentProps } = this.props;
     const { resource } = this.state;
 
     let body;
@@ -803,7 +804,7 @@ export class Resource extends React.PureComponent {
     if(rnComponent) {
       return React.createElement(
         rnComponent,
-        {},
+        rnComponentProps,
         body
       )
     } else {
