@@ -1,4 +1,4 @@
-export class Resource extends React.PureComponent {
+export class Resource extends React.Component {
   static propTypes = {
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
