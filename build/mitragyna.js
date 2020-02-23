@@ -212,6 +212,7 @@
             className = _props.className,
             component = _props.component,
             componentProps = _props.componentProps,
+            itemClassName = _props.itemClassName,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
             wrapperComponent = _props.wrapperComponent,
@@ -228,6 +229,7 @@
               {
                 afterDelete: _this2.deleteResource,
                 afterUpdate: _this2.replaceResource,
+                className: itemClassName,
                 component: component,
                 componentProps: _extends({}, componentProps, {
                   indexOf: indexOf
@@ -262,6 +264,7 @@
     blankComponent: _propTypes2.default.func,
     component: _propTypes2.default.func,
     componentProps: _propTypes2.default.object,
+    itemClassName: _propTypes2.default.string,
     onBuild: _propTypes2.default.func,
     onDelete: _propTypes2.default.func,
     onReplace: _propTypes2.default.func,

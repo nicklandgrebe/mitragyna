@@ -18,6 +18,7 @@ export class Collection extends React.Component {
     blankComponent: PropTypes.func,
     component: PropTypes.func,
     componentProps: PropTypes.object,
+    itemClassName: PropTypes.string,
     onBuild: PropTypes.func,
     onDelete: PropTypes.func,
     onReplace: PropTypes.func,
@@ -97,7 +98,7 @@ export class Collection extends React.Component {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
+    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
     const { target } = this.state;
 
     const body =
@@ -108,6 +109,7 @@ export class Collection extends React.Component {
               <Resource
                 afterDelete={this.deleteResource}
                 afterUpdate={this.replaceResource}
+                className={itemClassName}
                 component={component}
                 componentProps={{
                   ...componentProps,
