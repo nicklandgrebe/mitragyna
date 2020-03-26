@@ -17,6 +17,7 @@ export class Field extends React.Component {
   static propTypes = {
     className: PropTypes.string,
     component: PropTypes.func,
+    componentRef: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.instanceOf(ActiveResource.Collection),
@@ -116,12 +117,13 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name, rnChangeHandler } = this.props;
+    const { componentRef, name, rnChangeHandler } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
       name,
+      ref: componentRef,
       [rnChangeHandler || 'onChange']: this.handleChange,
     };
 
