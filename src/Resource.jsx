@@ -2,6 +2,7 @@ export class Resource extends React.PureComponent {
   static propTypes = {
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
+    beforeSubmit: PropTypes.func,
     children: PropTypes.oneOfType([
       PropTypes.array,
       PropTypes.node,
