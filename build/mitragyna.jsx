@@ -279,8 +279,11 @@ export class Field extends React.Component {
     switch(type) {
       case 'email':
       case 'number':
+      case 'password':
+      case 'search':
       case 'text':
       case 'textarea':
+      case 'url':
         this.afterChange = _.debounce(this.afterChange, 500);
     }
   }

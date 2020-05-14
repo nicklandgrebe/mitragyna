@@ -388,8 +388,11 @@
         switch (type) {
           case 'email':
           case 'number':
+          case 'password':
+          case 'search':
           case 'text':
           case 'textarea':
+          case 'url':
             this.afterChange = _underscore2.default.debounce(this.afterChange, 500);
         }
       }
