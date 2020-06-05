@@ -773,7 +773,10 @@
           subject = props.subject;
 
 
-      var state = { resource: subject };
+      var state = {
+        queuedReflectionChanges: [],
+        resource: subject
+      };
 
       if (reflection) {
         var reflectionInstance = root.klass().reflectOnAssociation(reflection);
@@ -786,10 +789,6 @@
           queuedChanges: {},
           reflection: reflectionInstance,
           updating: false
-        });
-      } else {
-        state = _extends({}, state, {
-          queuedReflectionChanges: []
         });
       }
 

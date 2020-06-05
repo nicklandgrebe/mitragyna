@@ -642,7 +642,10 @@ export class Resource extends React.Component {
     const { root } = context;
     const { reflection, subject } = props;
 
-    let state = { resource: subject };
+    let state = {
+      queuedReflectionChanges: [],
+      resource: subject
+    };
 
     if(reflection) {
       var reflectionInstance = root.klass().reflectOnAssociation(reflection);
@@ -657,11 +660,6 @@ export class Resource extends React.Component {
         reflection: reflectionInstance,
         updating: false,
       };
-    } else {
-      state = {
-        ...state,
-        queuedReflectionChanges: []
-      }
     }
 
     this.beforeSubmit = props.beforeSubmit;
