@@ -215,6 +215,7 @@
             itemClassName = _props.itemClassName,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
+            rnComponent = _props.rnComponent,
             wrapperComponent = _props.wrapperComponent,
             wrapperProps = _props.wrapperProps;
         var target = this.state.target;
@@ -237,6 +238,7 @@
                 key: t.id || t.klass().className + '-' + indexOf,
                 readOnly: readOnly,
                 reflection: reflection,
+                rnComponent: rnComponent,
                 subject: t
               },
               children
@@ -271,6 +273,7 @@
     readOnly: _propTypes2.default.bool,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
     reflection: _propTypes2.default.string,
+    rnComponent: _propTypes2.default.func,
     wrapperComponent: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.string]),
     wrapperProps: _propTypes2.default.object
   };
