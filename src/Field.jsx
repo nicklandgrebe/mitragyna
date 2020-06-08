@@ -30,6 +30,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ]),
     invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
@@ -37,6 +38,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ])
   };
 
