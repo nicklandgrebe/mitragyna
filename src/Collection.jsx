@@ -28,6 +28,7 @@ export class Collection extends React.Component {
       PropTypes.func,
     ]).isRequired,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     wrapperComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
     wrapperProps: PropTypes.object
   };
@@ -98,7 +99,7 @@ export class Collection extends React.Component {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
+    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, rnComponent, wrapperComponent, wrapperProps } = this.props;
     const { target } = this.state;
 
     const body =
@@ -118,6 +119,7 @@ export class Collection extends React.Component {
                 key={t.id || (t.klass().className + '-' + indexOf)}
                 readOnly={readOnly}
                 reflection={reflection}
+                rnComponent={rnComponent}
                 subject={t}
               >
                 {children}

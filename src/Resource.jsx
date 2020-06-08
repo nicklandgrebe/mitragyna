@@ -10,6 +10,7 @@ export class Resource extends React.Component {
     onSubmit: PropTypes.func,
     readOnly: PropTypes.bool,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
   };
 
@@ -40,6 +41,7 @@ export class Resource extends React.Component {
   static defaultProps = {
     componentProps: {},
     componentRef: _.noop,
+    rnComponentProps: {}
   };
 
   constructor(props, context) {
@@ -257,9 +259,9 @@ export class Resource extends React.Component {
   }
 
   render() {
-    const { isNestedResource } = this.context;
-    const { afterError, className, component, componentProps, componentRef, readOnly } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, readOnly, rnComponent, rnComponentProps } = this.props;
     const { resource } = this.state;
+    const { isNestedResource } = this.context;
 
     const isForm = !(isNestedResource || readOnly)
 
@@ -274,10 +276,18 @@ export class Resource extends React.Component {
       ref: (c) => { this.componentRef = c; componentRef(c) }
     });
 
-    if(isForm) {
-      return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
+    if(rnComponent) {
+      return React.createElement(
+        rnComponent,
+        rnComponentProps,
+        body
+      )
     } else {
-      return body
+      if(isForm) {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
+      } else {
+        return body
+      }
     }
   }
 

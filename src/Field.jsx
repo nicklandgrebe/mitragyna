@@ -17,6 +17,7 @@ export class Field extends React.Component {
   static propTypes = {
     className: PropTypes.string,
     component: PropTypes.func,
+    componentRef: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.oneOfType([
@@ -27,6 +28,7 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    rnChangeHandler: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -119,7 +121,6 @@ export class Field extends React.Component {
       this.setState({ resource })
     }
 
-    // FIXME: Check if value changed in order to set value
     if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
       this.setState({
         value: this.valueFor(resource, this.props)
@@ -140,13 +141,14 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { componentRef, name, rnChangeHandler } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
       name,
-      onChange: this.handleChange,
+      ref: componentRef,
+      [rnChangeHandler || 'onChange']: this.handleChange,
     };
 
     return props;
@@ -322,10 +324,10 @@ export class Field extends React.Component {
   }
 
   handleChange(e) {
-    e.persist();
-
-    const { max, min, type } = this.props;
+    const { max, min, rnChangeHandler, type } = this.props;
     const { changeRadio } = this.context;
+
+    if (!rnChangeHandler) e.persist();
 
     let value;
 
@@ -347,7 +349,11 @@ export class Field extends React.Component {
         changeRadio(e.target.value);
         break;
       default:
-        value = e.target.value;
+        if (rnChangeHandler) {
+          value = e;
+        } else {
+          value = e.target.value;
+        }
     }
 
     this.setState({ value }, this.afterChange);

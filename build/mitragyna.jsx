@@ -28,6 +28,7 @@ export class Collection extends React.Component {
       PropTypes.func,
     ]).isRequired,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     wrapperComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
     wrapperProps: PropTypes.object
   };
@@ -98,7 +99,7 @@ export class Collection extends React.Component {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
+    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, rnComponent, wrapperComponent, wrapperProps } = this.props;
     const { target } = this.state;
 
     const body =
@@ -118,6 +119,7 @@ export class Collection extends React.Component {
                 key={t.id || (t.klass().className + '-' + indexOf)}
                 readOnly={readOnly}
                 reflection={reflection}
+                rnComponent={rnComponent}
                 subject={t}
               >
                 {children}
@@ -144,6 +146,8 @@ export class Collection extends React.Component {
 export class ErrorsFor extends React.Component {
   static propTypes = {
     component: PropTypes.func,
+    errorComponent: PropTypes.func,
+    errorProps: PropTypes.object,
     field: PropTypes.string,
   };
 
@@ -157,7 +161,7 @@ export class ErrorsFor extends React.Component {
 
   render() {
     const { resource } = this.context;
-    const { component, field } = this.props;
+    const { component, errorComponent, errorProps, field } = this.props;
 
     var errors = resource.errors().forField(field);
 
@@ -171,7 +175,18 @@ export class ErrorsFor extends React.Component {
       key: field,
     },
       errors.map((error) => {
-        return <span key={ error.code }>{ error.message }</span>
+        if (errorComponent) {
+          return React.createElement(
+            errorComponent,
+            {
+              ...errorProps,
+              key: error.code,
+            },
+            error.message
+          )
+        } else {
+          return <span key={ error.code }>{ error.message }</span>
+        }
       }).toArray()
     );
   }
@@ -196,6 +211,7 @@ export class Field extends React.Component {
   static propTypes = {
     className: PropTypes.string,
     component: PropTypes.func,
+    componentRef: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.oneOfType([
@@ -206,12 +222,14 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    rnChangeHandler: PropTypes.string,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ]),
     invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
@@ -219,6 +237,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ])
   };
 
@@ -296,7 +315,6 @@ export class Field extends React.Component {
       this.setState({ resource })
     }
 
-    // FIXME: Check if value changed in order to set value
     if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
       this.setState({
         value: this.valueFor(resource, this.props)
@@ -317,13 +335,14 @@ export class Field extends React.Component {
   }
 
   commonInputProps() {
-    const { name } = this.props;
+    const { componentRef, name, rnChangeHandler } = this.props;
 
     let props = {
       className: this.classNames(),
       key: name,
       name,
-      onChange: this.handleChange,
+      ref: componentRef,
+      [rnChangeHandler || 'onChange']: this.handleChange,
     };
 
     return props;
@@ -499,10 +518,10 @@ export class Field extends React.Component {
   }
 
   handleChange(e) {
-    e.persist();
-
-    const { max, min, type } = this.props;
+    const { max, min, rnChangeHandler, type } = this.props;
     const { changeRadio } = this.context;
+
+    if (!rnChangeHandler) e.persist();
 
     let value;
 
@@ -524,7 +543,11 @@ export class Field extends React.Component {
         changeRadio(e.target.value);
         break;
       default:
-        value = e.target.value;
+        if (rnChangeHandler) {
+          value = e;
+        } else {
+          value = e.target.value;
+        }
     }
 
     this.setState({ value }, this.afterChange);
@@ -593,6 +616,7 @@ export class Resource extends React.Component {
     onSubmit: PropTypes.func,
     readOnly: PropTypes.bool,
     reflection: PropTypes.string,
+    rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
   };
 
@@ -623,6 +647,7 @@ export class Resource extends React.Component {
   static defaultProps = {
     componentProps: {},
     componentRef: _.noop,
+    rnComponentProps: {}
   };
 
   constructor(props, context) {
@@ -840,9 +865,9 @@ export class Resource extends React.Component {
   }
 
   render() {
-    const { isNestedResource } = this.context;
-    const { afterError, className, component, componentProps, componentRef, readOnly } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, readOnly, rnComponent, rnComponentProps } = this.props;
     const { resource } = this.state;
+    const { isNestedResource } = this.context;
 
     const isForm = !(isNestedResource || readOnly)
 
@@ -857,10 +882,18 @@ export class Resource extends React.Component {
       ref: (c) => { this.componentRef = c; componentRef(c) }
     });
 
-    if(isForm) {
-      return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
+    if(rnComponent) {
+      return React.createElement(
+        rnComponent,
+        rnComponentProps,
+        body
+      )
     } else {
-      return body
+      if(isForm) {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
+      } else {
+        return body
+      }
     }
   }
 

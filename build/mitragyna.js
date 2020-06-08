@@ -215,6 +215,7 @@
             itemClassName = _props.itemClassName,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
+            rnComponent = _props.rnComponent,
             wrapperComponent = _props.wrapperComponent,
             wrapperProps = _props.wrapperProps;
         var target = this.state.target;
@@ -237,6 +238,7 @@
                 key: t.id || t.klass().className + '-' + indexOf,
                 readOnly: readOnly,
                 reflection: reflection,
+                rnComponent: rnComponent,
                 subject: t
               },
               children
@@ -271,6 +273,7 @@
     readOnly: _propTypes2.default.bool,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
     reflection: _propTypes2.default.string,
+    rnComponent: _propTypes2.default.func,
     wrapperComponent: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.string]),
     wrapperProps: _propTypes2.default.object
   };
@@ -299,6 +302,8 @@
         var resource = this.context.resource;
         var _props2 = this.props,
             component = _props2.component,
+            errorComponent = _props2.errorComponent,
+            errorProps = _props2.errorProps,
             field = _props2.field;
 
 
@@ -312,11 +317,17 @@
         return _react2.default.createElement(finalComponent, _extends({}, customProps, {
           key: field
         }), errors.map(function (error) {
-          return _react2.default.createElement(
-            'span',
-            { key: error.code },
-            error.message
-          );
+          if (errorComponent) {
+            return _react2.default.createElement(errorComponent, _extends({}, errorProps, {
+              key: error.code
+            }), error.message);
+          } else {
+            return _react2.default.createElement(
+              'span',
+              { key: error.code },
+              error.message
+            );
+          }
         }).toArray());
       }
     }]);
@@ -326,6 +337,8 @@
 
   ErrorsFor.propTypes = {
     component: _propTypes2.default.func,
+    errorComponent: _propTypes2.default.func,
+    errorProps: _propTypes2.default.object,
     field: _propTypes2.default.string
   };
   ErrorsFor.contextTypes = {
@@ -407,7 +420,6 @@
           this.setState({ resource: resource });
         }
 
-        // FIXME: Check if value changed in order to set value
         if (!(_underscore2.default.isNull(prevResource.id) || _underscore2.default.isUndefined(prevResource.id)) && prevResource.id !== resource.id) {
           this.setState({
             value: this.valueFor(resource, this.props)
@@ -429,15 +441,18 @@
     }, {
       key: 'commonInputProps',
       value: function commonInputProps() {
-        var name = this.props.name;
+        var _props4 = this.props,
+            componentRef = _props4.componentRef,
+            name = _props4.name,
+            rnChangeHandler = _props4.rnChangeHandler;
 
 
-        var props = {
+        var props = _defineProperty({
           className: this.classNames(),
           key: name,
           name: name,
-          onChange: this.handleChange
-        };
+          ref: componentRef
+        }, rnChangeHandler || 'onChange', this.handleChange);
 
         return props;
       }
@@ -466,9 +481,9 @@
     }, {
       key: 'customInputProps',
       value: function customInputProps() {
-        var _props4 = this.props,
-            component = _props4.component,
-            type = _props4.type;
+        var _props6 = this.props,
+            component = _props6.component,
+            type = _props6.type;
 
 
         var omittedProps;
@@ -553,9 +568,9 @@
     }, {
       key: 'renderRadioComponent',
       value: function renderRadioComponent() {
-        var _props5 = this.props,
-            component = _props5.component,
-            value = _props5.value;
+        var _props7 = this.props,
+            component = _props7.component,
+            value = _props7.value;
         var radioValue = this.context.radioValue;
 
 
@@ -582,11 +597,11 @@
     }, {
       key: 'renderSelectComponent',
       value: function renderSelectComponent() {
-        var _props6 = this.props,
-            component = _props6.component,
-            includeBlank = _props6.includeBlank,
-            options = _props6.options,
-            optionsLabel = _props6.optionsLabel;
+        var _props8 = this.props,
+            component = _props8.component,
+            includeBlank = _props8.includeBlank,
+            options = _props8.options,
+            optionsLabel = _props8.optionsLabel;
 
 
         var selectOptions = null;
@@ -634,14 +649,15 @@
     }, {
       key: 'handleChange',
       value: function handleChange(e) {
-        e.persist();
-
-        var _props7 = this.props,
-            max = _props7.max,
-            min = _props7.min,
-            type = _props7.type;
+        var _props9 = this.props,
+            max = _props9.max,
+            min = _props9.min,
+            rnChangeHandler = _props9.rnChangeHandler,
+            type = _props9.type;
         var changeRadio = this.context.changeRadio;
 
+
+        if (!rnChangeHandler) e.persist();
 
         var value = void 0;
 
@@ -663,7 +679,11 @@
             changeRadio(e.target.value);
             break;
           default:
-            value = e.target.value;
+            if (rnChangeHandler) {
+              value = e;
+            } else {
+              value = e.target.value;
+            }
         }
 
         this.setState({ value: value }, this.afterChange);
@@ -671,12 +691,12 @@
     }, {
       key: 'afterChange',
       value: function afterChange() {
-        var _props8 = this.props,
-            name = _props8.name,
-            type = _props8.type,
-            options = _props8.options,
-            uncheckedValue = _props8.uncheckedValue,
-            value = _props8.value;
+        var _props10 = this.props,
+            name = _props10.name,
+            type = _props10.type,
+            options = _props10.options,
+            uncheckedValue = _props10.uncheckedValue,
+            value = _props10.value;
         var stateValue = this.state.value;
         var queueChange = this.context.queueChange;
 
@@ -748,14 +768,16 @@
   Field.propTypes = {
     className: _propTypes2.default.string,
     component: _propTypes2.default.func,
+    componentRef: _propTypes2.default.func,
     includeBlank: _propTypes2.default.bool,
     name: _propTypes2.default.string.isRequired,
     options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
     optionsLabel: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.func]),
+    rnChangeHandler: _propTypes2.default.string,
     type: _propTypes2.default.string.isRequired,
-    uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number]),
+    uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number, _propTypes2.default.bool]),
     invalidClassName: _propTypes2.default.string,
-    value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number])
+    value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number, _propTypes2.default.bool])
   };
 
   var Resource = exports.Resource = function (_React$Component4) {
@@ -957,9 +979,9 @@
     }, {
       key: 'handleDelete',
       value: function handleDelete() {
-        var _props9 = this.props,
-            afterDelete = _props9.afterDelete,
-            afterError = _props9.afterError;
+        var _props11 = this.props,
+            afterDelete = _props11.afterDelete,
+            afterError = _props11.afterError;
         var resource = this.state.resource;
 
 
@@ -974,9 +996,9 @@
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props10 = this.props,
-            onSubmit = _props10.onSubmit,
-            onInvalidSubmit = _props10.onInvalidSubmit;
+        var _props12 = this.props,
+            onSubmit = _props12.onSubmit,
+            onInvalidSubmit = _props12.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -1019,15 +1041,18 @@
       value: function render() {
         var _this8 = this;
 
-        var isNestedResource = this.context.isNestedResource;
-        var _props11 = this.props,
-            afterError = _props11.afterError,
-            className = _props11.className,
-            component = _props11.component,
-            componentProps = _props11.componentProps,
-            componentRef = _props11.componentRef,
-            readOnly = _props11.readOnly;
+        var _props13 = this.props,
+            afterError = _props13.afterError,
+            children = _props13.children,
+            className = _props13.className,
+            component = _props13.component,
+            componentProps = _props13.componentProps,
+            componentRef = _props13.componentRef,
+            readOnly = _props13.readOnly,
+            rnComponent = _props13.rnComponent,
+            rnComponentProps = _props13.rnComponentProps;
         var resource = this.state.resource;
+        var isNestedResource = this.context.isNestedResource;
 
 
         var isForm = !(isNestedResource || readOnly);
@@ -1044,14 +1069,18 @@
           }
         }));
 
-        if (isForm) {
-          return _react2.default.createElement(
-            'form',
-            { className: className, onSubmit: this.handleSubmit },
-            body
-          );
+        if (rnComponent) {
+          return _react2.default.createElement(rnComponent, rnComponentProps, body);
         } else {
-          return body;
+          if (isForm) {
+            return _react2.default.createElement(
+              'form',
+              { className: className, onSubmit: this.handleSubmit },
+              body
+            );
+          } else {
+            return body;
+          }
         }
       }
     }, {
@@ -1084,6 +1113,7 @@
     onSubmit: _propTypes2.default.func,
     readOnly: _propTypes2.default.bool,
     reflection: _propTypes2.default.string,
+    rnComponent: _propTypes2.default.func,
     subject: _propTypes2.default.object.isRequired
   };
   Resource.contextTypes = {
@@ -1110,6 +1140,7 @@
   };
   Resource.defaultProps = {
     componentProps: {},
-    componentRef: _underscore2.default.noop
+    componentRef: _underscore2.default.noop,
+    rnComponentProps: {}
   };
 });
