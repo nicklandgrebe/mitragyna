@@ -1,16 +1,14 @@
-export class Resource extends React.PureComponent {
+export class Resource extends React.Component {
   static propTypes = {
+    afterDelete: PropTypes.func,
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
-    children: PropTypes.oneOfType([
-      PropTypes.array,
-      PropTypes.node,
-    ]),
     className: PropTypes.string,
-    component: PropTypes.func,
+    component: PropTypes.func.isRequired,
     componentProps: PropTypes.object,
     onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
+    readOnly: PropTypes.bool,
     reflection: PropTypes.string,
     rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
@@ -55,6 +53,7 @@ export class Resource extends React.PureComponent {
       'queueReflectionChange',
       'shiftReflectionQueue',
       'queueChange',
+      'handleDelete',
       'handleSubmit',
       'updateRoot'
     );
@@ -62,7 +61,10 @@ export class Resource extends React.PureComponent {
     const { root } = context;
     const { reflection, subject } = props;
 
-    let state = { resource: subject };
+    let state = {
+      queuedReflectionChanges: [],
+      resource: subject
+    };
 
     if(reflection) {
       var reflectionInstance = root.klass().reflectOnAssociation(reflection);
@@ -77,11 +79,6 @@ export class Resource extends React.PureComponent {
         reflection: reflectionInstance,
         updating: false,
       };
-    } else {
-      state = {
-        ...state,
-        queuedReflectionChanges: []
-      }
     }
 
     this.beforeSubmit = props.beforeSubmit;
@@ -140,9 +137,7 @@ export class Resource extends React.PureComponent {
 
     var newResource = resource.assignAttributes(queuedChanges);
 
-    this.setState({ queuedChanges: {} });
-
-    this.afterUpdate(newResource);
+    this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }
 
   queueChange(change) {
@@ -208,6 +203,20 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
+  handleDelete() {
+    const { afterDelete, afterError } = this.props
+
+    const { resource } = this.state
+
+    resource.destroy()
+    .then(() => {
+      afterDelete && afterDelete(resource)
+    })
+    .catch((error) => {
+      afterError && afterError(error)
+    })
+  }
+
   handleSubmit(e, callback) {
     if(e) e.preventDefault();
 
@@ -250,23 +259,22 @@ export class Resource extends React.PureComponent {
   }
 
   render() {
-    const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef, rnComponent, rnComponentProps } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, readOnly, rnComponent, rnComponentProps } = this.props;
     const { resource } = this.state;
+    const { isNestedResource } = this.context;
 
-    let body;
-    if(component) {
-      body = React.createElement(component, {
-        ...componentProps,
-        afterUpdate: this.afterUpdate,
-        afterError,
-        onSubmit: this.handleSubmit,
-        subject: resource,
-        ref: (c) => { this.componentRef = c; componentRef(c) }
-      });
-    } else {
-      body = children;
-    }
+    const isForm = !(isNestedResource || readOnly)
+
+    let body = React.createElement(component, {
+      ...componentProps,
+      afterUpdate: this.afterUpdate,
+      afterError,
+      ...!isForm && { className },
+      onDelete: this.handleDelete,
+      onSubmit: this.handleSubmit,
+      subject: resource,
+      ref: (c) => { this.componentRef = c; componentRef(c) }
+    });
 
     if(rnComponent) {
       return React.createElement(
@@ -275,14 +283,10 @@ export class Resource extends React.PureComponent {
         body
       )
     } else {
-      if(isNestedResource) {
-        return (
-          <section className={ className }>
-            { body }
-          </section>
-        );
+      if(isForm) {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
       } else {
-        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+        return body
       }
     }
   }

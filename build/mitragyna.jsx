@@ -3,7 +3,12 @@ import PropTypes from 'prop-types';
 import ActiveResource from 'active-resource';
 import _ from 'underscore';
 
-export class Collection extends React.PureComponent {
+export class Collection extends React.Component {
+  static contextTypes = {
+    resource: PropTypes.object,
+    updateRoot: PropTypes.func
+  }
+
   static propTypes = {
     children: PropTypes.oneOfType([
       PropTypes.array,
@@ -13,15 +18,23 @@ export class Collection extends React.PureComponent {
     blankComponent: PropTypes.func,
     component: PropTypes.func,
     componentProps: PropTypes.object,
+    itemClassName: PropTypes.string,
+    onBuild: PropTypes.func,
+    onDelete: PropTypes.func,
+    onReplace: PropTypes.func,
+    readOnly: PropTypes.bool,
     subject: PropTypes.oneOfType([
       PropTypes.object,
       PropTypes.func,
     ]).isRequired,
     reflection: PropTypes.string,
+    wrapperComponent: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    wrapperProps: PropTypes.object
   };
 
   static defaultProps = {
-    inlineRows: false
+    inlineRows: false,
+    wrapperComponent: 'section'
   };
 
   // link to global state by enabling afterLoad, afterAdd, afterRemove, afterUpdate callbacks that can call
@@ -31,15 +44,8 @@ export class Collection extends React.PureComponent {
     super();
 
     this.state = {
-      target: ActiveResource.prototype.Collection.build()
+      target: ActiveResource.Collection.build()
     };
-
-    _.bindAll(this,
-      'buildOnTarget',
-      'cloneTarget',
-      'replaceOnTarget',
-      'removeFromTarget',
-    );
   }
 
   componentDidMount() {
@@ -50,66 +56,88 @@ export class Collection extends React.PureComponent {
     this.setTarget(nextProps);
   }
 
-  setTarget(props) {
-    const { subject } = props;
-
-    this.setState({ target: subject.target() })
+  setTarget = ({ subject }) => {
+    this.setState({ target: subject.target && subject.target() || subject })
   }
 
-  buildOnTarget(attributes) {
-    const { subject } = this.props;
-    let target = this.cloneTarget();
+  buildResource = (arg) => {
+    const { onBuild, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.push(subject.build(attributes));
-
-    this.setState({ target: target });
+    if(resource) {
+      updateRoot(resource[reflection]().build())
+    } else {
+      onBuild(arg)
+    }
   }
 
-  replaceOnTarget(newItem, oldItem) {
-    let target = this.cloneTarget();
+  replaceResource = (newItem, oldItem) => {
+    const { onReplace, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.replace(oldItem, newItem);
-
-    return this.setState({ target });
+    if(resource) {
+      const newResource = resource.clone()
+      newResource[reflection]().target().replace(oldItem, newItem)
+      updateRoot(newResource)
+    } else {
+      onReplace(newItem, oldItem)
+    }
   }
 
-  removeFromTarget(item) {
-    let target = this.cloneTarget();
+  deleteResource = (item) => {
+    const { onDelete, reflection, subject } = this.props
+    const { resource, updateRoot } = this.context
 
-    target.delete(item);
-
-    return this.setState({ target });
-  }
-
-  cloneTarget() {
-    return this.state.target.clone();
+    if(resource) {
+      const newResource = resource.clone()
+      newResource[reflection]().target().delete(item)
+      updateRoot(newResource)
+    } else {
+      onDelete(item)
+    }
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, reflection } = this.props;
+    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
     const { target } = this.state;
 
-    return (
-      <section className={ className }>
+    const body =
+      <React.Fragment>
         {
           target.size() > 0 ? (
             target.map((t, indexOf) =>
-              <Resource afterUpdate={this.replaceOnTarget}
-                        component={component} componentProps={{...componentProps, indexOf}}
-                        key={t.id || (t.klass().className + '-' + indexOf)}
-                        reflection={reflection}
-                        subject={t}>
-
-
+              <Resource
+                afterDelete={this.deleteResource}
+                afterUpdate={this.replaceResource}
+                className={itemClassName}
+                component={component}
+                componentProps={{
+                  ...componentProps,
+                  indexOf
+                }}
+                key={t.id || (t.klass().className + '-' + indexOf)}
+                readOnly={readOnly}
+                reflection={reflection}
+                subject={t}
+              >
                 {children}
               </Resource>
             ).toArray()
           ) : (blankComponent != null &&
-            blankComponent()
+            React.createElement(blankComponent)
           )
         }
-      </section>
-    );
+      </React.Fragment>
+
+    return React.createElement(
+      wrapperComponent,
+      {
+        className,
+        onBuild: this.buildResource,
+        ...wrapperProps
+      },
+      body
+    )
   }
 }
 
@@ -184,7 +212,10 @@ export class Field extends React.Component {
     componentRef: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
-    options: PropTypes.instanceOf(ActiveResource.Collection),
+    options: PropTypes.oneOfType([
+      PropTypes.instanceOf(ActiveResource.Collection),
+      PropTypes.array
+    ]),
     optionsLabel: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
@@ -196,6 +227,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ]),
     invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
@@ -203,6 +235,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ])
   };
 
@@ -263,8 +296,11 @@ export class Field extends React.Component {
     switch(type) {
       case 'email':
       case 'number':
+      case 'password':
+      case 'search':
       case 'text':
       case 'textarea':
+      case 'url':
         this.afterChange = _.debounce(this.afterChange, 500);
     }
   }
@@ -347,7 +383,6 @@ export class Field extends React.Component {
     return _.omit(this.props, _.keys(omittedProps));
   }
 
-  // TODO: Add support for non-resource options on select and radioGroup
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
 
@@ -363,12 +398,18 @@ export class Field extends React.Component {
         }
       case 'radioGroup':
       case 'select':
-        var val = resource[name]();
-        return val ? val.id : '';
+        var propForName = resource[name]
+
+        if(_.isFunction(propForName)) {
+          var val = resource[name]();
+          return val ? val.id : '';
+        } else {
+          return propForName
+        }
       default:
         var val = resource[name];
 
-        return val ? val : '';
+        return !(_.isUndefined(val) || _.isNull(val)) ? val : '';
     }
   }
 
@@ -428,23 +469,31 @@ export class Field extends React.Component {
     const { component, includeBlank, options, optionsLabel } = this.props;
 
     let selectOptions = null;
-    if (options.empty()) {
+    if ((_.isArray(options) && _.isEmpty(options)) || (!_.isArray(options) && options.empty())) {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => {
-        return <option key={o.id} value={o.id}>
-          {
-            _.isString(optionsLabel) ? (
-              o[optionsLabel]
-            ) : (
-              optionsLabel(o)
-            )
-          }
-        </option>;
+        if(_.isArray(o)) {
+          return <option key={o[0]} value={o[0]}>
+            {o[1]}
+          </option>
+        } else {
+          return <option key={o.id} value={o.id}>
+            {
+              _.isString(optionsLabel) ? (
+                o[optionsLabel]
+              ) : (
+                optionsLabel(o)
+              )
+            }
+          </option>;
+        }
       });
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
       }
+
+      if(!_.isArray(selectOptions)) selectOptions = selectOptions.toArray()
     }
 
     let finalComponent = component || 'select';
@@ -452,7 +501,7 @@ export class Field extends React.Component {
       ...this.commonInputProps(),
       ...this.customInputProps(),
       value: this.state.value,
-    }, selectOptions.toArray());
+    }, selectOptions);
   }
 
   renderTextareaComponent() {
@@ -520,7 +569,11 @@ export class Field extends React.Component {
         mappedValue = value;
         break;
       case 'select':
-        mappedValue = options.detect((o) => o.id === stateValue);
+        if(_.isArray(options)) {
+          mappedValue = stateValue
+        } else {
+          mappedValue = options.detect((o) => o.id === stateValue)
+        }
         break;
       default:
         mappedValue = stateValue;
@@ -549,19 +602,17 @@ export class Field extends React.Component {
   }
 }
 
-export class Resource extends React.PureComponent {
+export class Resource extends React.Component {
   static propTypes = {
+    afterDelete: PropTypes.func,
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
-    children: PropTypes.oneOfType([
-      PropTypes.array,
-      PropTypes.node,
-    ]),
     className: PropTypes.string,
-    component: PropTypes.func,
+    component: PropTypes.func.isRequired,
     componentProps: PropTypes.object,
     onInvalidSubmit: PropTypes.func,
     onSubmit: PropTypes.func,
+    readOnly: PropTypes.bool,
     reflection: PropTypes.string,
     rnComponent: PropTypes.func,
     subject: PropTypes.object.isRequired,
@@ -606,6 +657,7 @@ export class Resource extends React.PureComponent {
       'queueReflectionChange',
       'shiftReflectionQueue',
       'queueChange',
+      'handleDelete',
       'handleSubmit',
       'updateRoot'
     );
@@ -613,7 +665,10 @@ export class Resource extends React.PureComponent {
     const { root } = context;
     const { reflection, subject } = props;
 
-    let state = { resource: subject };
+    let state = {
+      queuedReflectionChanges: [],
+      resource: subject
+    };
 
     if(reflection) {
       var reflectionInstance = root.klass().reflectOnAssociation(reflection);
@@ -628,11 +683,6 @@ export class Resource extends React.PureComponent {
         reflection: reflectionInstance,
         updating: false,
       };
-    } else {
-      state = {
-        ...state,
-        queuedReflectionChanges: []
-      }
     }
 
     this.beforeSubmit = props.beforeSubmit;
@@ -691,9 +741,7 @@ export class Resource extends React.PureComponent {
 
     var newResource = resource.assignAttributes(queuedChanges);
 
-    this.setState({ queuedChanges: {} });
-
-    this.afterUpdate(newResource);
+    this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }
 
   queueChange(change) {
@@ -759,6 +807,20 @@ export class Resource extends React.PureComponent {
     return childContext;
   }
 
+  handleDelete() {
+    const { afterDelete, afterError } = this.props
+
+    const { resource } = this.state
+
+    resource.destroy()
+    .then(() => {
+      afterDelete && afterDelete(resource)
+    })
+    .catch((error) => {
+      afterError && afterError(error)
+    })
+  }
+
   handleSubmit(e, callback) {
     if(e) e.preventDefault();
 
@@ -801,23 +863,22 @@ export class Resource extends React.PureComponent {
   }
 
   render() {
-    const { isNestedResource } = this.context;
-    const { afterError, children, className, component, componentProps, componentRef, rnComponent, rnComponentProps } = this.props;
+    const { afterError, children, className, component, componentProps, componentRef, readOnly, rnComponent, rnComponentProps } = this.props;
     const { resource } = this.state;
+    const { isNestedResource } = this.context;
 
-    let body;
-    if(component) {
-      body = React.createElement(component, {
-        ...componentProps,
-        afterUpdate: this.afterUpdate,
-        afterError,
-        onSubmit: this.handleSubmit,
-        subject: resource,
-        ref: (c) => { this.componentRef = c; componentRef(c) }
-      });
-    } else {
-      body = children;
-    }
+    const isForm = !(isNestedResource || readOnly)
+
+    let body = React.createElement(component, {
+      ...componentProps,
+      afterUpdate: this.afterUpdate,
+      afterError,
+      ...!isForm && { className },
+      onDelete: this.handleDelete,
+      onSubmit: this.handleSubmit,
+      subject: resource,
+      ref: (c) => { this.componentRef = c; componentRef(c) }
+    });
 
     if(rnComponent) {
       return React.createElement(
@@ -826,14 +887,10 @@ export class Resource extends React.PureComponent {
         body
       )
     } else {
-      if(isNestedResource) {
-        return (
-          <section className={ className }>
-            { body }
-          </section>
-        );
+      if(isForm) {
+        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>
       } else {
-        return <form className={className} onSubmit={ this.handleSubmit }>{ body }</form>;
+        return body
       }
     }
   }

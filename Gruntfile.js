@@ -14,8 +14,6 @@ module.exports = function(grunt) {
     },
     babel: {
       options: {
-        sourceMap: true,
-        minified: true,
         presets: ['env'],
         plugins: [
           'transform-class-properties',
@@ -26,7 +24,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/mitragyna.min.js': 'build/mitragyna.jsx'
+          'build/mitragyna.js': 'build/mitragyna.jsx'
         }
       },
       specs: {
