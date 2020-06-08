@@ -691,8 +691,8 @@
     value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number])
   };
 
-  var Resource = exports.Resource = function (_React$PureComponent2) {
-    _inherits(Resource, _React$PureComponent2);
+  var Resource = exports.Resource = function (_React$Component3) {
+    _inherits(Resource, _React$Component3);
 
     function Resource(props, context) {
       _classCallCheck(this, Resource);
@@ -993,7 +993,7 @@
     }]);
 
     return Resource;
-  }(_react2.default.PureComponent);
+  }(_react2.default.Component);
 
   Resource.propTypes = {
     afterError: _propTypes2.default.func,

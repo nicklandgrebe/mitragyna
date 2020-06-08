@@ -529,7 +529,7 @@ export class Field extends React.Component {
   }
 }
 
-export class Resource extends React.PureComponent {
+export class Resource extends React.Component {
   static propTypes = {
     afterError: PropTypes.func,
     afterUpdate: PropTypes.func,
