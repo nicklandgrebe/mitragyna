@@ -113,8 +113,8 @@
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  var Collection = exports.Collection = function (_React$PureComponent) {
-    _inherits(Collection, _React$PureComponent);
+  var Collection = exports.Collection = function (_React$Component) {
+    _inherits(Collection, _React$Component);
 
     // link to global state by enabling afterLoad, afterAdd, afterRemove, afterUpdate callbacks that can call
     // an action linked to dispatch
@@ -124,11 +124,70 @@
 
       var _this = _possibleConstructorReturn(this, (Collection.__proto__ || Object.getPrototypeOf(Collection)).call(this));
 
-      _this.state = {
-        target: _activeResource2.default.prototype.Collection.build()
+      _this.setTarget = function (_ref) {
+        var subject = _ref.subject;
+
+        _this.setState({ target: subject.target && subject.target() || subject });
       };
 
-      _underscore2.default.bindAll(_this, 'buildOnTarget', 'cloneTarget', 'replaceOnTarget', 'removeFromTarget');
+      _this.buildResource = function (arg) {
+        var _this$props = _this.props,
+            onBuild = _this$props.onBuild,
+            reflection = _this$props.reflection,
+            subject = _this$props.subject;
+        var _this$context = _this.context,
+            resource = _this$context.resource,
+            updateRoot = _this$context.updateRoot;
+
+
+        if (resource) {
+          updateRoot(resource[reflection]().build());
+        } else {
+          onBuild(arg);
+        }
+      };
+
+      _this.replaceResource = function (newItem, oldItem) {
+        var _this$props2 = _this.props,
+            onReplace = _this$props2.onReplace,
+            reflection = _this$props2.reflection,
+            subject = _this$props2.subject;
+        var _this$context2 = _this.context,
+            resource = _this$context2.resource,
+            updateRoot = _this$context2.updateRoot;
+
+
+        if (resource) {
+          var newResource = resource.clone();
+          newResource[reflection]().target().replace(oldItem, newItem);
+          updateRoot(newResource);
+        } else {
+          onReplace(newItem, oldItem);
+        }
+      };
+
+      _this.deleteResource = function (item) {
+        var _this$props3 = _this.props,
+            onDelete = _this$props3.onDelete,
+            reflection = _this$props3.reflection,
+            subject = _this$props3.subject;
+        var _this$context3 = _this.context,
+            resource = _this$context3.resource,
+            updateRoot = _this$context3.updateRoot;
+
+
+        if (resource) {
+          var newResource = resource.clone();
+          newResource[reflection]().target().delete(item);
+          updateRoot(newResource);
+        } else {
+          onDelete(item);
+        }
+      };
+
+      _this.state = {
+        target: _activeResource2.default.Collection.build()
+      };
       return _this;
     }
 
@@ -143,48 +202,6 @@
         this.setTarget(nextProps);
       }
     }, {
-      key: 'setTarget',
-      value: function setTarget(props) {
-        var subject = props.subject;
-
-
-        this.setState({ target: subject.target() });
-      }
-    }, {
-      key: 'buildOnTarget',
-      value: function buildOnTarget(attributes) {
-        var subject = this.props.subject;
-
-        var target = this.cloneTarget();
-
-        target.push(subject.build(attributes));
-
-        this.setState({ target: target });
-      }
-    }, {
-      key: 'replaceOnTarget',
-      value: function replaceOnTarget(newItem, oldItem) {
-        var target = this.cloneTarget();
-
-        target.replace(oldItem, newItem);
-
-        return this.setState({ target: target });
-      }
-    }, {
-      key: 'removeFromTarget',
-      value: function removeFromTarget(item) {
-        var target = this.cloneTarget();
-
-        target.delete(item);
-
-        return this.setState({ target: target });
-      }
-    }, {
-      key: 'cloneTarget',
-      value: function cloneTarget() {
-        return this.state.target.clone();
-      }
-    }, {
       key: 'render',
       value: function render() {
         var _this2 = this;
@@ -195,46 +212,75 @@
             className = _props.className,
             component = _props.component,
             componentProps = _props.componentProps,
-            reflection = _props.reflection;
+            itemClassName = _props.itemClassName,
+            readOnly = _props.readOnly,
+            reflection = _props.reflection,
+            wrapperComponent = _props.wrapperComponent,
+            wrapperProps = _props.wrapperProps;
         var target = this.state.target;
 
 
-        return _react2.default.createElement(
-          'section',
-          { className: className },
+        var body = _react2.default.createElement(
+          _react2.default.Fragment,
+          null,
           target.size() > 0 ? target.map(function (t, indexOf) {
             return _react2.default.createElement(
               Resource,
-              { afterUpdate: _this2.replaceOnTarget,
-                component: component, componentProps: _extends({}, componentProps, { indexOf: indexOf }),
+              {
+                afterDelete: _this2.deleteResource,
+                afterUpdate: _this2.replaceResource,
+                className: itemClassName,
+                component: component,
+                componentProps: _extends({}, componentProps, {
+                  indexOf: indexOf
+                }),
                 key: t.id || t.klass().className + '-' + indexOf,
+                readOnly: readOnly,
                 reflection: reflection,
-                subject: t },
+                subject: t
+              },
               children
             );
-          }).toArray() : blankComponent != null && blankComponent()
+          }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
         );
+
+        return _react2.default.createElement(wrapperComponent, _extends({
+          className: className,
+          onBuild: this.buildResource
+        }, wrapperProps), body);
       }
     }]);
 
     return Collection;
-  }(_react2.default.PureComponent);
+  }(_react2.default.Component);
 
+  Collection.contextTypes = {
+    resource: _propTypes2.default.object,
+    updateRoot: _propTypes2.default.func
+  };
   Collection.propTypes = {
     children: _propTypes2.default.oneOfType([_propTypes2.default.array, _propTypes2.default.node]),
     className: _propTypes2.default.string,
     blankComponent: _propTypes2.default.func,
     component: _propTypes2.default.func,
     componentProps: _propTypes2.default.object,
+    itemClassName: _propTypes2.default.string,
+    onBuild: _propTypes2.default.func,
+    onDelete: _propTypes2.default.func,
+    onReplace: _propTypes2.default.func,
+    readOnly: _propTypes2.default.bool,
     subject: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func]).isRequired,
-    reflection: _propTypes2.default.string
+    reflection: _propTypes2.default.string,
+    wrapperComponent: _propTypes2.default.oneOfType([_propTypes2.default.func, _propTypes2.default.string]),
+    wrapperProps: _propTypes2.default.object
   };
   Collection.defaultProps = {
-    inlineRows: false
+    inlineRows: false,
+    wrapperComponent: 'section'
   };
 
-  var ErrorsFor = exports.ErrorsFor = function (_React$Component) {
-    _inherits(ErrorsFor, _React$Component);
+  var ErrorsFor = exports.ErrorsFor = function (_React$Component2) {
+    _inherits(ErrorsFor, _React$Component2);
 
     function ErrorsFor() {
       _classCallCheck(this, ErrorsFor);
@@ -287,8 +333,8 @@
   };
   ;
 
-  var Field = exports.Field = function (_React$Component2) {
-    _inherits(Field, _React$Component2);
+  var Field = exports.Field = function (_React$Component3) {
+    _inherits(Field, _React$Component3);
 
     function Field() {
       _classCallCheck(this, Field);
@@ -342,8 +388,11 @@
         switch (type) {
           case 'email':
           case 'number':
+          case 'password':
+          case 'search':
           case 'text':
           case 'textarea':
+          case 'url':
             this.afterChange = _underscore2.default.debounce(this.afterChange, 500);
         }
       }
@@ -438,9 +487,6 @@
 
         return _underscore2.default.omit(this.props, _underscore2.default.keys(omittedProps));
       }
-
-      // TODO: Add support for non-resource options on select and radioGroup
-
     }, {
       key: 'valueFor',
       value: function valueFor(resource, props) {
@@ -462,12 +508,18 @@
             }
           case 'radioGroup':
           case 'select':
-            var val = resource[name]();
-            return val ? val.id : '';
+            var propForName = resource[name];
+
+            if (_underscore2.default.isFunction(propForName)) {
+              var val = resource[name]();
+              return val ? val.id : '';
+            } else {
+              return propForName;
+            }
           default:
             var val = resource[name];
 
-            return val ? val : '';
+            return !(_underscore2.default.isUndefined(val) || _underscore2.default.isNull(val)) ? val : '';
         }
       }
     }, {
@@ -540,25 +592,35 @@
 
 
         var selectOptions = null;
-        if (options.empty()) {
+        if (_underscore2.default.isArray(options) && _underscore2.default.isEmpty(options) || !_underscore2.default.isArray(options) && options.empty()) {
           throw 'Input type="select" must have options';
         } else {
           selectOptions = options.map(function (o) {
-            return _react2.default.createElement(
-              'option',
-              { key: o.id, value: o.id },
-              _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
-            );
+            if (_underscore2.default.isArray(o)) {
+              return _react2.default.createElement(
+                'option',
+                { key: o[0], value: o[0] },
+                o[1]
+              );
+            } else {
+              return _react2.default.createElement(
+                'option',
+                { key: o.id, value: o.id },
+                _underscore2.default.isString(optionsLabel) ? o[optionsLabel] : optionsLabel(o)
+              );
+            }
           });
           if (includeBlank) {
             selectOptions.unshift(_react2.default.createElement('option', { key: -1, value: '' }));
           }
+
+          if (!_underscore2.default.isArray(selectOptions)) selectOptions = selectOptions.toArray();
         }
 
         var finalComponent = component || 'select';
         return _react2.default.createElement(finalComponent, _extends({}, this.commonInputProps(), this.customInputProps(), {
           value: this.state.value
-        }), selectOptions.toArray());
+        }), selectOptions);
       }
     }, {
       key: 'renderTextareaComponent',
@@ -634,9 +696,13 @@
             mappedValue = value;
             break;
           case 'select':
-            mappedValue = options.detect(function (o) {
-              return o.id === stateValue;
-            });
+            if (_underscore2.default.isArray(options)) {
+              mappedValue = stateValue;
+            } else {
+              mappedValue = options.detect(function (o) {
+                return o.id === stateValue;
+              });
+            }
             break;
           default:
             mappedValue = stateValue;
@@ -686,30 +752,33 @@
     component: _propTypes2.default.func,
     includeBlank: _propTypes2.default.bool,
     name: _propTypes2.default.string.isRequired,
-    options: _propTypes2.default.instanceOf(_activeResource2.default.Collection),
+    options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
     optionsLabel: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.func]),
     type: _propTypes2.default.string.isRequired,
-    uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number]),
+    uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number, _propTypes2.default.bool]),
     invalidClassName: _propTypes2.default.string,
-    value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number])
+    value: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number, _propTypes2.default.bool])
   };
 
-  var Resource = exports.Resource = function (_React$PureComponent2) {
-    _inherits(Resource, _React$PureComponent2);
+  var Resource = exports.Resource = function (_React$Component4) {
+    _inherits(Resource, _React$Component4);
 
     function Resource(props, context) {
       _classCallCheck(this, Resource);
 
       var _this5 = _possibleConstructorReturn(this, (Resource.__proto__ || Object.getPrototypeOf(Resource)).call(this));
 
-      _underscore2.default.bindAll(_this5, 'afterUpdate', 'assignChanges', 'queueReflectionChange', 'shiftReflectionQueue', 'queueChange', 'handleSubmit', 'updateRoot');
+      _underscore2.default.bindAll(_this5, 'afterUpdate', 'assignChanges', 'queueReflectionChange', 'shiftReflectionQueue', 'queueChange', 'handleDelete', 'handleSubmit', 'updateRoot');
 
       var root = context.root;
       var reflection = props.reflection,
           subject = props.subject;
 
 
-      var state = { resource: subject };
+      var state = {
+        queuedReflectionChanges: [],
+        resource: subject
+      };
 
       if (reflection) {
         var reflectionInstance = root.klass().reflectOnAssociation(reflection);
@@ -722,10 +791,6 @@
           queuedChanges: {},
           reflection: reflectionInstance,
           updating: false
-        });
-      } else {
-        state = _extends({}, state, {
-          queuedReflectionChanges: []
         });
       }
 
@@ -796,6 +861,8 @@
     }, {
       key: 'assignChanges',
       value: function assignChanges() {
+        var _this6 = this;
+
         var _state2 = this.state,
             queuedChanges = _state2.queuedChanges,
             resource = _state2.resource;
@@ -805,14 +872,14 @@
 
         var newResource = resource.assignAttributes(queuedChanges);
 
-        this.setState({ queuedChanges: {} });
-
-        this.afterUpdate(newResource);
+        this.setState({ queuedChanges: {} }, function () {
+          return _this6.afterUpdate(newResource);
+        });
       }
     }, {
       key: 'queueChange',
       value: function queueChange(change) {
-        var _this6 = this;
+        var _this7 = this;
 
         var afterUpdate = this.props.afterUpdate;
         var _state3 = this.state,
@@ -824,7 +891,7 @@
         this.setState({
           queuedChanges: _extends({}, queuedChanges, change)
         }, function () {
-          var _context2 = _this6.context,
+          var _context2 = _this7.context,
               afterUpdateRoot = _context2.afterUpdateRoot,
               queueReflectionChange = _context2.queueReflectionChange,
               updatingRoot = _context2.updatingRoot;
@@ -833,15 +900,15 @@
           if (afterUpdate || afterUpdateRoot) {
             if (inverseReflection) {
               if (updatingRoot) {
-                queueReflectionChange(_this6);
+                queueReflectionChange(_this7);
               } else {
-                _this6.assignChanges();
+                _this7.assignChanges();
               }
             } else {
-              if (!updating) _this6.assignChanges();
+              if (!updating) _this7.assignChanges();
             }
           } else {
-            _this6.assignChanges();
+            _this7.assignChanges();
           }
         });
       }
@@ -890,13 +957,28 @@
         return childContext;
       }
     }, {
+      key: 'handleDelete',
+      value: function handleDelete() {
+        var _props9 = this.props,
+            afterDelete = _props9.afterDelete,
+            afterError = _props9.afterError;
+        var resource = this.state.resource;
+
+
+        resource.destroy().then(function () {
+          afterDelete && afterDelete(resource);
+        }).catch(function (error) {
+          afterError && afterError(error);
+        });
+      }
+    }, {
       key: 'handleSubmit',
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props9 = this.props,
-            onSubmit = _props9.onSubmit,
-            onInvalidSubmit = _props9.onInvalidSubmit;
+        var _props10 = this.props,
+            onSubmit = _props10.onSubmit,
+            onInvalidSubmit = _props10.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -937,46 +1019,41 @@
     }, {
       key: 'render',
       value: function render() {
-        var _this7 = this;
+        var _this8 = this;
 
         var isNestedResource = this.context.isNestedResource;
-        var _props10 = this.props,
-            afterError = _props10.afterError,
-            children = _props10.children,
-            className = _props10.className,
-            component = _props10.component,
-            componentProps = _props10.componentProps,
-            componentRef = _props10.componentRef;
+        var _props11 = this.props,
+            afterError = _props11.afterError,
+            className = _props11.className,
+            component = _props11.component,
+            componentProps = _props11.componentProps,
+            componentRef = _props11.componentRef,
+            readOnly = _props11.readOnly;
         var resource = this.state.resource;
 
 
-        var body = void 0;
-        if (component) {
-          body = _react2.default.createElement(component, _extends({}, componentProps, {
-            afterUpdate: this.afterUpdate,
-            afterError: afterError,
-            onSubmit: this.handleSubmit,
-            subject: resource,
-            ref: function ref(c) {
-              _this7.componentRef = c;componentRef(c);
-            }
-          }));
-        } else {
-          body = children;
-        }
+        var isForm = !(isNestedResource || readOnly);
 
-        if (isNestedResource) {
-          return _react2.default.createElement(
-            'section',
-            { className: className },
-            body
-          );
-        } else {
+        var body = _react2.default.createElement(component, _extends({}, componentProps, {
+          afterUpdate: this.afterUpdate,
+          afterError: afterError
+        }, !isForm && { className: className }, {
+          onDelete: this.handleDelete,
+          onSubmit: this.handleSubmit,
+          subject: resource,
+          ref: function ref(c) {
+            _this8.componentRef = c;componentRef(c);
+          }
+        }));
+
+        if (isForm) {
           return _react2.default.createElement(
             'form',
             { className: className, onSubmit: this.handleSubmit },
             body
           );
+        } else {
+          return body;
         }
       }
     }, {
@@ -996,17 +1073,18 @@
     }]);
 
     return Resource;
-  }(_react2.default.PureComponent);
+  }(_react2.default.Component);
 
   Resource.propTypes = {
+    afterDelete: _propTypes2.default.func,
     afterError: _propTypes2.default.func,
     afterUpdate: _propTypes2.default.func,
-    children: _propTypes2.default.oneOfType([_propTypes2.default.array, _propTypes2.default.node]),
     className: _propTypes2.default.string,
-    component: _propTypes2.default.func,
+    component: _propTypes2.default.func.isRequired,
     componentProps: _propTypes2.default.object,
     onInvalidSubmit: _propTypes2.default.func,
     onSubmit: _propTypes2.default.func,
+    readOnly: _propTypes2.default.bool,
     reflection: _propTypes2.default.string,
     subject: _propTypes2.default.object.isRequired
   };

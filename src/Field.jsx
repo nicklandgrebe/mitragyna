@@ -19,7 +19,10 @@ export class Field extends React.Component {
     component: PropTypes.func,
     includeBlank: PropTypes.bool,
     name: PropTypes.string.isRequired,
-    options: PropTypes.instanceOf(ActiveResource.Collection),
+    options: PropTypes.oneOfType([
+      PropTypes.instanceOf(ActiveResource.Collection),
+      PropTypes.array
+    ]),
     optionsLabel: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.func,
@@ -30,6 +33,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ]),
     invalidClassName: PropTypes.string,
     value: PropTypes.oneOfType([
@@ -37,6 +41,7 @@ export class Field extends React.Component {
       PropTypes.func,
       PropTypes.string,
       PropTypes.number,
+      PropTypes.bool,
     ])
   };
 
@@ -97,8 +102,11 @@ export class Field extends React.Component {
     switch(type) {
       case 'email':
       case 'number':
+      case 'password':
+      case 'search':
       case 'text':
       case 'textarea':
+      case 'url':
         this.afterChange = _.debounce(this.afterChange, 500);
     }
   }
@@ -183,7 +191,6 @@ export class Field extends React.Component {
     return _.omit(this.props, _.keys(omittedProps));
   }
 
-  // TODO: Add support for non-resource options on select and radioGroup
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
 
@@ -199,12 +206,18 @@ export class Field extends React.Component {
         }
       case 'radioGroup':
       case 'select':
-        var val = resource[name]();
-        return val ? val.id : '';
+        var propForName = resource[name]
+
+        if(_.isFunction(propForName)) {
+          var val = resource[name]();
+          return val ? val.id : '';
+        } else {
+          return propForName
+        }
       default:
         var val = resource[name];
 
-        return val ? val : '';
+        return !(_.isUndefined(val) || _.isNull(val)) ? val : '';
     }
   }
 
@@ -264,23 +277,31 @@ export class Field extends React.Component {
     const { component, includeBlank, options, optionsLabel } = this.props;
 
     let selectOptions = null;
-    if (options.empty()) {
+    if ((_.isArray(options) && _.isEmpty(options)) || (!_.isArray(options) && options.empty())) {
       throw 'Input type="select" must have options';
     } else {
       selectOptions = options.map((o) => {
-        return <option key={o.id} value={o.id}>
-          {
-            _.isString(optionsLabel) ? (
-              o[optionsLabel]
-            ) : (
-              optionsLabel(o)
-            )
-          }
-        </option>;
+        if(_.isArray(o)) {
+          return <option key={o[0]} value={o[0]}>
+            {o[1]}
+          </option>
+        } else {
+          return <option key={o.id} value={o.id}>
+            {
+              _.isString(optionsLabel) ? (
+                o[optionsLabel]
+              ) : (
+                optionsLabel(o)
+              )
+            }
+          </option>;
+        }
       });
       if (includeBlank) {
         selectOptions.unshift(<option key={-1} value=''></option>);
       }
+
+      if(!_.isArray(selectOptions)) selectOptions = selectOptions.toArray()
     }
 
     let finalComponent = component || 'select';
@@ -288,7 +309,7 @@ export class Field extends React.Component {
       ...this.commonInputProps(),
       ...this.customInputProps(),
       value: this.state.value,
-    }, selectOptions.toArray());
+    }, selectOptions);
   }
 
   renderTextareaComponent() {
@@ -352,7 +373,11 @@ export class Field extends React.Component {
         mappedValue = value;
         break;
       case 'select':
-        mappedValue = options.detect((o) => o.id === stateValue);
+        if(_.isArray(options)) {
+          mappedValue = stateValue
+        } else {
+          mappedValue = options.detect((o) => o.id === stateValue)
+        }
         break;
       default:
         mappedValue = stateValue;
