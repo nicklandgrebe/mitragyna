@@ -407,13 +407,10 @@
           this.setState({ resource: resource });
         }
 
-        if (!(_underscore2.default.isNull(prevResource.id) || _underscore2.default.isUndefined(prevResource.id))) {
-          var prevValue = this.valueFor(prevResource, this.props);
-          var value = this.valueFor(resource, this.props);
+        var value = this.valueFor(resource, this.props);
 
-          if (prevResource.id != resource.id || prevValue != value) {
-            this.setState({ value: value });
-          }
+        if (!prevResource || this.valueFor(prevResource, this.props) != value) {
+          this.setState({ value: value });
         }
       }
     }, {

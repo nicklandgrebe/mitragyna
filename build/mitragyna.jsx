@@ -298,13 +298,10 @@ export class Field extends React.Component {
       this.setState({ resource })
     }
 
-    if(!(_.isNull(prevResource.id) || _.isUndefined(prevResource.id))) {
-      const prevValue = this.valueFor(prevResource, this.props)
-      const value = this.valueFor(resource, this.props)
+    const value = this.valueFor(resource, this.props)
 
-      if(prevResource.id != resource.id || prevValue != value) {
-        this.setState({ value })
-      }
+    if(!prevResource || this.valueFor(prevResource, this.props) != value) {
+      this.setState({ value })
     }
   }
 
