@@ -59,11 +59,9 @@ export class Resource extends React.Component {
     const { root } = context;
     const { reflection, subject } = props;
 
-    let resource = subject
-
     let state = {
       queuedReflectionChanges: [],
-      resource,
+      resource: subject
     };
 
     if(reflection) {
@@ -72,18 +70,11 @@ export class Resource extends React.Component {
       var inverseReflection = reflectionInstance.inverseOf();
       if(_.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
 
-      if(!resource) {
-        let association = root.association(reflection)
-        resource = association.__buildResource()
-        association.replace(resource)
-      }
-
       state = {
         ...state,
         inverseReflection,
         queuedChanges: {},
         reflection: reflectionInstance,
-        resource,
         updating: false,
       };
     }
@@ -140,10 +131,18 @@ export class Resource extends React.Component {
   assignChanges() {
     const { reflection } = this.props;
     const { queuedChanges, resource } = this.state;
+    const { root } = this.context;
 
-    if(_.keys(queuedChanges).length == 0) return;
+    if(_.keys(queuedChanges).length == 0) return
 
-    var newResource = resource.assignAttributes(queuedChanges);
+    let newResource = resource
+    if(!resource && reflection) {
+      let association = root.association(reflection)
+      newResource = association.__buildResource()
+      association.replace(newResource)
+    }
+
+    newResource = newResource.assignAttributes(queuedChanges);
 
     this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }

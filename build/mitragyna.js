@@ -772,11 +772,9 @@
           subject = props.subject;
 
 
-      var resource = subject;
-
       var state = {
         queuedReflectionChanges: [],
-        resource: resource
+        resource: subject
       };
 
       if (reflection) {
@@ -785,17 +783,10 @@
         var inverseReflection = reflectionInstance.inverseOf();
         if (_underscore2.default.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
 
-        if (!resource) {
-          var association = root.association(reflection);
-          resource = association.__buildResource();
-          association.replace(resource);
-        }
-
         state = _extends({}, state, {
           inverseReflection: inverseReflection,
           queuedChanges: {},
           reflection: reflectionInstance,
-          resource: resource,
           updating: false
         });
       }
@@ -873,11 +864,19 @@
         var _state2 = this.state,
             queuedChanges = _state2.queuedChanges,
             resource = _state2.resource;
+        var root = this.context.root;
 
 
         if (_underscore2.default.keys(queuedChanges).length == 0) return;
 
-        var newResource = resource.assignAttributes(queuedChanges);
+        var newResource = resource;
+        if (!resource && reflection) {
+          var association = root.association(reflection);
+          newResource = association.__buildResource();
+          association.replace(newResource);
+        }
+
+        newResource = newResource.assignAttributes(queuedChanges);
 
         this.setState({ queuedChanges: {} }, function () {
           return _this6.afterUpdate(newResource);
