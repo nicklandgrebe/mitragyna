@@ -486,7 +486,9 @@
       }
     }, {
       key: 'valueFor',
-      value: function valueFor(resource, props) {
+      value: function valueFor() {
+        var resource = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var props = arguments[1];
         var name = props.name,
             type = props.type,
             uncheckedValue = props.uncheckedValue,
