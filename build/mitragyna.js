@@ -786,7 +786,7 @@
         if (_underscore2.default.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
 
         if (!resource) {
-          var association = root.association(inverseReflection.name);
+          var association = root.association(reflection);
           resource = association.__buildResource();
           association.replace(resource);
         }

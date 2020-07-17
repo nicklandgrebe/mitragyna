@@ -73,7 +73,7 @@ export class Resource extends React.Component {
       if(_.isUndefined(inverseReflection)) throw 'Reflection ' + reflection + ' must have inverse.';
 
       if(!resource) {
-        let association = root.association(inverseReflection.name)
+        let association = root.association(reflection)
         resource = association.__buildResource()
         association.replace(resource)
       }
