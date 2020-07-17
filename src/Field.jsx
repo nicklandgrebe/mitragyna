@@ -188,8 +188,10 @@ export class Field extends React.Component {
     return _.omit(this.props, _.keys(omittedProps));
   }
 
-  valueFor(resource = {}, props) {
+  valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
+
+    if(_.isNull(resource)) resource = {}
 
     switch(type) {
       case 'checkbox':

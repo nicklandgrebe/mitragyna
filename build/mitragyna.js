@@ -486,14 +486,14 @@
       }
     }, {
       key: 'valueFor',
-      value: function valueFor() {
-        var resource = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        var props = arguments[1];
+      value: function valueFor(resource, props) {
         var name = props.name,
             type = props.type,
             uncheckedValue = props.uncheckedValue,
             value = props.value;
 
+
+        if (_underscore2.default.isNull(resource)) resource = {};
 
         switch (type) {
           case 'checkbox':
