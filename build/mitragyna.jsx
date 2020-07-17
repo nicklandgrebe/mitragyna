@@ -696,7 +696,7 @@ export class Resource extends React.Component {
     const { inverseReflection, resource } = this.state;
 
     if(inverseReflection) {
-      var oldTarget = resource.association(inverseReflection.name).target;
+      var oldTarget = resource && resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
 
       if(inverseReflection.collection()) {
