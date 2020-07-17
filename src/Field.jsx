@@ -133,7 +133,7 @@ export class Field extends React.Component {
     return classNames(
       className,
       {
-        [invalidClassName]: !resource.errors().forField(name).empty()
+        [invalidClassName]: resource && !resource.errors().forField(name).empty()
       }
     );
   }

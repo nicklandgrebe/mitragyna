@@ -423,7 +423,7 @@
         var resource = this.context.resource;
 
 
-        return (0, _classnames2.default)(className, _defineProperty({}, invalidClassName, !resource.errors().forField(name).empty()));
+        return (0, _classnames2.default)(className, _defineProperty({}, invalidClassName, resource && !resource.errors().forField(name).empty()));
       }
     }, {
       key: 'commonInputProps',
