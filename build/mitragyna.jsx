@@ -300,7 +300,7 @@ export class Field extends React.Component {
 
     const value = this.valueFor(resource, this.props)
 
-    if(!prevResource || this.valueFor(prevResource, this.props) != value) {
+    if(resource && (!prevResource || this.valueFor(prevResource, this.props) != value)) {
       this.setState({ value })
     }
   }
@@ -312,7 +312,7 @@ export class Field extends React.Component {
     return classNames(
       className,
       {
-        [invalidClassName]: !resource.errors().forField(name).empty()
+        [invalidClassName]: resource && !resource.errors().forField(name).empty()
       }
     );
   }
@@ -369,6 +369,8 @@ export class Field extends React.Component {
 
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
+
+    if(_.isNull(resource)) resource = {}
 
     switch(type) {
       case 'checkbox':
@@ -694,7 +696,7 @@ export class Resource extends React.Component {
     const { inverseReflection, resource } = this.state;
 
     if(inverseReflection) {
-      var oldTarget = resource.association(inverseReflection.name).target;
+      var oldTarget = resource && resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
 
       if(inverseReflection.collection()) {
@@ -713,11 +715,20 @@ export class Resource extends React.Component {
   }
 
   assignChanges() {
+    const { reflection } = this.props;
     const { queuedChanges, resource } = this.state;
+    const { root } = this.context;
 
-    if(_.keys(queuedChanges).length == 0) return;
+    if(_.keys(queuedChanges).length == 0) return
 
-    var newResource = resource.assignAttributes(queuedChanges);
+    let newResource = resource
+    if(!resource && reflection) {
+      let association = root.association(reflection)
+      newResource = association.__buildResource()
+      association.replace(newResource)
+    }
+
+    newResource = newResource.assignAttributes(queuedChanges);
 
     this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }

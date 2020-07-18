@@ -121,7 +121,7 @@ export class Field extends React.Component {
 
     const value = this.valueFor(resource, this.props)
 
-    if(!prevResource || this.valueFor(prevResource, this.props) != value) {
+    if(resource && (!prevResource || this.valueFor(prevResource, this.props) != value)) {
       this.setState({ value })
     }
   }
@@ -133,7 +133,7 @@ export class Field extends React.Component {
     return classNames(
       className,
       {
-        [invalidClassName]: !resource.errors().forField(name).empty()
+        [invalidClassName]: resource && !resource.errors().forField(name).empty()
       }
     );
   }
@@ -190,6 +190,8 @@ export class Field extends React.Component {
 
   valueFor(resource, props) {
     const { name, type, uncheckedValue, value } = props;
+
+    if(_.isNull(resource)) resource = {}
 
     switch(type) {
       case 'checkbox':

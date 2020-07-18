@@ -110,7 +110,7 @@ export class Resource extends React.Component {
     const { inverseReflection, resource } = this.state;
 
     if(inverseReflection) {
-      var oldTarget = resource.association(inverseReflection.name).target;
+      var oldTarget = resource && resource.association(inverseReflection.name).target;
       var newTarget = newResource.association(inverseReflection.name).target;
 
       if(inverseReflection.collection()) {
@@ -129,11 +129,20 @@ export class Resource extends React.Component {
   }
 
   assignChanges() {
+    const { reflection } = this.props;
     const { queuedChanges, resource } = this.state;
+    const { root } = this.context;
 
-    if(_.keys(queuedChanges).length == 0) return;
+    if(_.keys(queuedChanges).length == 0) return
 
-    var newResource = resource.assignAttributes(queuedChanges);
+    let newResource = resource
+    if(!resource && reflection) {
+      let association = root.association(reflection)
+      newResource = association.__buildResource()
+      association.replace(newResource)
+    }
+
+    newResource = newResource.assignAttributes(queuedChanges);
 
     this.setState({ queuedChanges: {} }, () => this.afterUpdate(newResource));
   }

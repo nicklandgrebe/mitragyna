@@ -409,7 +409,7 @@
 
         var value = this.valueFor(resource, this.props);
 
-        if (!prevResource || this.valueFor(prevResource, this.props) != value) {
+        if (resource && (!prevResource || this.valueFor(prevResource, this.props) != value)) {
           this.setState({ value: value });
         }
       }
@@ -423,7 +423,7 @@
         var resource = this.context.resource;
 
 
-        return (0, _classnames2.default)(className, _defineProperty({}, invalidClassName, !resource.errors().forField(name).empty()));
+        return (0, _classnames2.default)(className, _defineProperty({}, invalidClassName, resource && !resource.errors().forField(name).empty()));
       }
     }, {
       key: 'commonInputProps',
@@ -492,6 +492,8 @@
             uncheckedValue = props.uncheckedValue,
             value = props.value;
 
+
+        if (_underscore2.default.isNull(resource)) resource = {};
 
         switch (type) {
           case 'checkbox':
@@ -838,7 +840,7 @@
 
 
         if (inverseReflection) {
-          var oldTarget = resource.association(inverseReflection.name).target;
+          var oldTarget = resource && resource.association(inverseReflection.name).target;
           var newTarget = newResource.association(inverseReflection.name).target;
 
           if (inverseReflection.collection()) {
@@ -860,14 +862,23 @@
       value: function assignChanges() {
         var _this6 = this;
 
+        var reflection = this.props.reflection;
         var _state2 = this.state,
             queuedChanges = _state2.queuedChanges,
             resource = _state2.resource;
+        var root = this.context.root;
 
 
         if (_underscore2.default.keys(queuedChanges).length == 0) return;
 
-        var newResource = resource.assignAttributes(queuedChanges);
+        var newResource = resource;
+        if (!resource && reflection) {
+          var association = root.association(reflection);
+          newResource = association.__buildResource();
+          association.replace(newResource);
+        }
+
+        newResource = newResource.assignAttributes(queuedChanges);
 
         this.setState({ queuedChanges: {} }, function () {
           return _this6.afterUpdate(newResource);
