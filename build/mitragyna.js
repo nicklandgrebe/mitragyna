@@ -409,7 +409,7 @@
 
         var value = this.valueFor(resource, this.props);
 
-        if (!prevResource || this.valueFor(prevResource, this.props) != value) {
+        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value) {
           this.setState({ value: value });
         }
       }
