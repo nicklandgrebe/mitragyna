@@ -33,7 +33,7 @@ export class Collection extends React.Component {
   };
 
   static defaultProps = {
-    inlineRows: false,
+    useResource: true,
     wrapperComponent: 'section'
   };
 
@@ -98,31 +98,57 @@ export class Collection extends React.Component {
   }
 
   render() {
-    const { blankComponent, children, className, component, componentProps, itemClassName, readOnly, reflection, wrapperComponent, wrapperProps } = this.props;
+    const {
+      blankComponent,
+      children,
+      className,
+      component,
+      componentProps,
+      itemClassName,
+      readOnly,
+      reflection,
+      useResource,
+      wrapperComponent,
+      wrapperProps
+    } = this.props;
+
     const { target } = this.state;
 
     const body =
       <React.Fragment>
         {
           target.size() > 0 ? (
-            target.map((t, indexOf) =>
-              <Resource
-                afterDelete={this.deleteResource}
-                afterUpdate={this.replaceResource}
-                className={itemClassName}
-                component={component}
-                componentProps={{
-                  ...componentProps,
-                  indexOf
-                }}
-                key={t.id || (t.klass().className + '-' + indexOf)}
-                readOnly={readOnly}
-                reflection={reflection}
-                subject={t}
-              >
-                {children}
-              </Resource>
-            ).toArray()
+            target.map((t, indexOf) => (
+              useResource ? (
+                <Resource
+                  afterDelete={this.deleteResource}
+                  afterUpdate={this.replaceResource}
+                  className={itemClassName}
+                  component={component}
+                  componentProps={{
+                    ...componentProps,
+                    indexOf
+                  }}
+                  key={t.id || (t.klass().className + '-' + indexOf)}
+                  readOnly={readOnly}
+                  reflection={reflection}
+                  subject={t}
+                />
+              ) : (
+                React.createElement(
+                  component,
+                  {
+                    afterDelete: this.deleteResource,
+                    afterUpdate: this.replaceResource,
+                    className: itemClassName,
+                    indexOf,
+                    key: indexOf,
+                    subject: t,
+                    ...componentProps,
+                  }
+                )
+              )
+            )).toArray()
           ) : (blankComponent != null &&
             React.createElement(blankComponent)
           )

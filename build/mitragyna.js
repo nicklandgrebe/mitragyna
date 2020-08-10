@@ -215,6 +215,7 @@
             itemClassName = _props.itemClassName,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
+            useResource = _props.useResource,
             wrapperComponent = _props.wrapperComponent,
             wrapperProps = _props.wrapperProps;
         var target = this.state.target;
@@ -224,23 +225,26 @@
           _react2.default.Fragment,
           null,
           target.size() > 0 ? target.map(function (t, indexOf) {
-            return _react2.default.createElement(
-              Resource,
-              {
-                afterDelete: _this2.deleteResource,
-                afterUpdate: _this2.replaceResource,
-                className: itemClassName,
-                component: component,
-                componentProps: _extends({}, componentProps, {
-                  indexOf: indexOf
-                }),
-                key: t.id || t.klass().className + '-' + indexOf,
-                readOnly: readOnly,
-                reflection: reflection,
-                subject: t
-              },
-              children
-            );
+            return useResource ? _react2.default.createElement(Resource, {
+              afterDelete: _this2.deleteResource,
+              afterUpdate: _this2.replaceResource,
+              className: itemClassName,
+              component: component,
+              componentProps: _extends({}, componentProps, {
+                indexOf: indexOf
+              }),
+              key: t.id || t.klass().className + '-' + indexOf,
+              readOnly: readOnly,
+              reflection: reflection,
+              subject: t
+            }) : _react2.default.createElement(component, _extends({
+              afterDelete: _this2.deleteResource,
+              afterUpdate: _this2.replaceResource,
+              className: itemClassName,
+              indexOf: indexOf,
+              key: indexOf,
+              subject: t
+            }, componentProps));
           }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
         );
 
@@ -275,7 +279,7 @@
     wrapperProps: _propTypes2.default.object
   };
   Collection.defaultProps = {
-    inlineRows: false,
+    useResource: true,
     wrapperComponent: 'section'
   };
 
