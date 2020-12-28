@@ -432,14 +432,17 @@
     }, {
       key: 'commonInputProps',
       value: function commonInputProps() {
-        var name = this.props.name;
+        var _props4 = this.props,
+            forwardRef = _props4.forwardRef,
+            name = _props4.name;
 
 
         var props = {
           className: this.classNames(),
           key: name,
           name: name,
-          onChange: this.handleChange
+          onChange: this.handleChange,
+          ref: forwardRef
         };
 
         return props;
@@ -469,9 +472,9 @@
     }, {
       key: 'customInputProps',
       value: function customInputProps() {
-        var _props4 = this.props,
-            component = _props4.component,
-            type = _props4.type;
+        var _props5 = this.props,
+            component = _props5.component,
+            type = _props5.type;
 
 
         var omittedProps;
@@ -558,9 +561,9 @@
     }, {
       key: 'renderRadioComponent',
       value: function renderRadioComponent() {
-        var _props5 = this.props,
-            component = _props5.component,
-            value = _props5.value;
+        var _props6 = this.props,
+            component = _props6.component,
+            value = _props6.value;
         var radioValue = this.context.radioValue;
 
 
@@ -587,11 +590,11 @@
     }, {
       key: 'renderSelectComponent',
       value: function renderSelectComponent() {
-        var _props6 = this.props,
-            component = _props6.component,
-            includeBlank = _props6.includeBlank,
-            options = _props6.options,
-            optionsLabel = _props6.optionsLabel;
+        var _props7 = this.props,
+            component = _props7.component,
+            includeBlank = _props7.includeBlank,
+            options = _props7.options,
+            optionsLabel = _props7.optionsLabel;
 
 
         var selectOptions = null;
@@ -641,10 +644,10 @@
       value: function handleChange(e) {
         e.persist();
 
-        var _props7 = this.props,
-            max = _props7.max,
-            min = _props7.min,
-            type = _props7.type;
+        var _props8 = this.props,
+            max = _props8.max,
+            min = _props8.min,
+            type = _props8.type;
         var changeRadio = this.context.changeRadio;
 
 
@@ -676,12 +679,12 @@
     }, {
       key: 'afterChange',
       value: function afterChange() {
-        var _props8 = this.props,
-            name = _props8.name,
-            type = _props8.type,
-            options = _props8.options,
-            uncheckedValue = _props8.uncheckedValue,
-            value = _props8.value;
+        var _props9 = this.props,
+            name = _props9.name,
+            type = _props9.type,
+            options = _props9.options,
+            uncheckedValue = _props9.uncheckedValue,
+            value = _props9.value;
         var stateValue = this.state.value;
         var queueChange = this.context.queueChange;
 
@@ -753,6 +756,7 @@
   Field.propTypes = {
     className: _propTypes2.default.string,
     component: _propTypes2.default.func,
+    forwardRef: _propTypes2.default.func,
     includeBlank: _propTypes2.default.bool,
     name: _propTypes2.default.string.isRequired,
     options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
@@ -971,9 +975,9 @@
     }, {
       key: 'handleDelete',
       value: function handleDelete() {
-        var _props9 = this.props,
-            afterDelete = _props9.afterDelete,
-            afterError = _props9.afterError;
+        var _props10 = this.props,
+            afterDelete = _props10.afterDelete,
+            afterError = _props10.afterError;
         var resource = this.state.resource;
 
 
@@ -988,9 +992,9 @@
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props10 = this.props,
-            onSubmit = _props10.onSubmit,
-            onInvalidSubmit = _props10.onInvalidSubmit;
+        var _props11 = this.props,
+            onSubmit = _props11.onSubmit,
+            onInvalidSubmit = _props11.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -1034,13 +1038,13 @@
         var _this8 = this;
 
         var isNestedResource = this.context.isNestedResource;
-        var _props11 = this.props,
-            afterError = _props11.afterError,
-            className = _props11.className,
-            component = _props11.component,
-            componentProps = _props11.componentProps,
-            componentRef = _props11.componentRef,
-            readOnly = _props11.readOnly;
+        var _props12 = this.props,
+            afterError = _props12.afterError,
+            className = _props12.className,
+            component = _props12.component,
+            componentProps = _props12.componentProps,
+            componentRef = _props12.componentRef,
+            readOnly = _props12.readOnly;
         var resource = this.state.resource;
 
 
