@@ -105,6 +105,7 @@ export class Collection extends React.Component {
       component,
       componentProps,
       itemClassName,
+      keyFunc,
       readOnly,
       reflection,
       useResource,
@@ -142,7 +143,7 @@ export class Collection extends React.Component {
                     afterUpdate: this.replaceResource,
                     className: itemClassName,
                     indexOf,
-                    key: indexOf,
+                    key: (keyFunc ? keyFunc(t) : indexOf),
                     subject: t,
                     ...componentProps,
                   }

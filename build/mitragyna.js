@@ -213,6 +213,7 @@
             component = _props.component,
             componentProps = _props.componentProps,
             itemClassName = _props.itemClassName,
+            keyFunc = _props.keyFunc,
             readOnly = _props.readOnly,
             reflection = _props.reflection,
             useResource = _props.useResource,
@@ -242,7 +243,7 @@
               afterUpdate: _this2.replaceResource,
               className: itemClassName,
               indexOf: indexOf,
-              key: indexOf,
+              key: keyFunc ? keyFunc(t) : indexOf,
               subject: t
             }, componentProps));
           }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
