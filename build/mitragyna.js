@@ -406,6 +406,7 @@
       value: function componentDidUpdate(prevProps, prevState) {
         var prevResource = prevState.resource;
         var resource = this.context.resource;
+        var lockValue = this.props.lockValue;
 
 
         if (prevResource !== resource) {
@@ -414,7 +415,7 @@
 
         var value = this.valueFor(resource, this.props);
 
-        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value) {
+        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value && !lockValue) {
           this.setState({ value: value });
         }
       }
@@ -759,6 +760,7 @@
     component: _propTypes2.default.func,
     forwardRef: _propTypes2.default.func,
     includeBlank: _propTypes2.default.bool,
+    lockValue: _propTypes2.default.bool,
     name: _propTypes2.default.string.isRequired,
     options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
     optionsLabel: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.func]),

@@ -225,6 +225,7 @@ export class Field extends React.Component {
     component: PropTypes.func,
     forwardRef: PropTypes.func,
     includeBlank: PropTypes.bool,
+    lockValue: PropTypes.bool,
     name: PropTypes.string.isRequired,
     options: PropTypes.oneOfType([
       PropTypes.instanceOf(ActiveResource.Collection),
@@ -322,13 +323,19 @@ export class Field extends React.Component {
     const { resource: prevResource } = prevState
     const { resource } = this.context
 
+    const { lockValue } = this.props
+
     if(prevResource !== resource) {
       this.setState({ resource })
     }
 
     const value = this.valueFor(resource, this.props)
 
-    if((!prevResource && resource) || (prevResource && !resource) || this.valueFor(prevResource, this.props) != value) {
+    if(
+      (!prevResource && resource) ||
+      (prevResource && !resource) ||
+      (this.valueFor(prevResource, this.props) != value && !lockValue)
+    ) {
       this.setState({ value })
     }
   }
