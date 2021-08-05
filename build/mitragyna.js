@@ -412,6 +412,7 @@
         var prevResource = prevState.resource;
         var resource = this.context.resource;
         var _props4 = this.props,
+            forceValue = _props4.forceValue,
             lockValue = _props4.lockValue,
             transformInputValue = _props4.transformInputValue;
 
@@ -422,7 +423,7 @@
 
         var value = this.valueFor(resource, this.props);
 
-        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value && !lockValue) {
+        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value && !lockValue || forceValue) {
           if (transformInputValue) value = transformInputValue(value);
           this.setState({ value: value });
         }

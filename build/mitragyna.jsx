@@ -328,7 +328,7 @@ export class Field extends React.Component {
     const { resource: prevResource } = prevState
     const { resource } = this.context
 
-    const { lockValue, transformInputValue } = this.props
+    const { forceValue, lockValue, transformInputValue } = this.props
 
     if(prevResource !== resource) {
       this.setState({ resource })
@@ -339,7 +339,8 @@ export class Field extends React.Component {
     if(
       (!prevResource && resource) ||
       (prevResource && !resource) ||
-      (this.valueFor(prevResource, this.props) != value && !lockValue)
+      (this.valueFor(prevResource, this.props) != value && !lockValue) ||
+      forceValue
     ) {
       if(transformInputValue) value = transformInputValue(value)
       this.setState({ value })
