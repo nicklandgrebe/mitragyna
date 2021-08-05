@@ -391,6 +391,7 @@
         if (transformInputValue) value = transformInputValue(value);
 
         this.setState({
+          forcedValue: false,
           resource: resource,
           value: value
         });
@@ -409,7 +410,8 @@
     }, {
       key: 'componentDidUpdate',
       value: function componentDidUpdate(prevProps, prevState) {
-        var prevResource = prevState.resource;
+        var forcedValue = prevState.forcedValue,
+            prevResource = prevState.resource;
         var resource = this.context.resource;
         var _props4 = this.props,
             forceValue = _props4.forceValue,
@@ -423,9 +425,13 @@
 
         var value = this.valueFor(resource, this.props);
 
-        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value && !lockValue || forceValue) {
+        if (!prevResource && resource || prevResource && !resource || this.valueFor(prevResource, this.props) != value && !lockValue || forceValue && !forcedValue) {
           if (transformInputValue) value = transformInputValue(value);
-          this.setState({ value: value });
+          this.setState({ forcedValue: forceValue, value: value });
+        }
+
+        if (forcedValue && !forceValue) {
+          this.setState({ forcedValue: false });
         }
       }
     }, {

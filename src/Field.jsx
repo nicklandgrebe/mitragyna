@@ -102,6 +102,7 @@ export class Field extends React.Component {
     if(transformInputValue) value = transformInputValue(value)
 
     this.setState({
+      forcedValue: false,
       resource,
       value,
     });
@@ -119,7 +120,7 @@ export class Field extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { resource: prevResource } = prevState
+    const { forcedValue, resource: prevResource } = prevState
     const { resource } = this.context
 
     const { forceValue, lockValue, transformInputValue } = this.props
@@ -134,10 +135,14 @@ export class Field extends React.Component {
       (!prevResource && resource) ||
       (prevResource && !resource) ||
       (this.valueFor(prevResource, this.props) != value && !lockValue) ||
-      forceValue
+      (forceValue && !forcedValue)
     ) {
       if(transformInputValue) value = transformInputValue(value)
-      this.setState({ value })
+      this.setState({ forcedValue: forceValue, value })
+    }
+
+    if(forcedValue && !forceValue) {
+      this.setState({ forcedValue: false })
     }
   }
 
