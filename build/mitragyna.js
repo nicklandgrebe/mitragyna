@@ -683,6 +683,7 @@
       value: function afterChange() {
         var _props9 = this.props,
             name = _props9.name,
+            transformValue = _props9.transformValue,
             type = _props9.type,
             options = _props9.options,
             uncheckedValue = _props9.uncheckedValue,
@@ -714,6 +715,10 @@
             break;
           default:
             mappedValue = stateValue;
+        }
+
+        if (transformValue) {
+          mappedValue = transformValue(mappedValue);
         }
 
         queueChange(_defineProperty({}, name, mappedValue));
@@ -764,6 +769,7 @@
     name: _propTypes2.default.string.isRequired,
     options: _propTypes2.default.oneOfType([_propTypes2.default.instanceOf(_activeResource2.default.Collection), _propTypes2.default.array]),
     optionsLabel: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.func]),
+    transformValue: _propTypes2.default.func,
     type: _propTypes2.default.string.isRequired,
     uncheckedValue: _propTypes2.default.oneOfType([_propTypes2.default.object, _propTypes2.default.func, _propTypes2.default.string, _propTypes2.default.number, _propTypes2.default.bool]),
     invalidClassName: _propTypes2.default.string,

@@ -29,6 +29,7 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
+    transformValue: PropTypes.func,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -364,7 +365,7 @@ export class Field extends React.Component {
   }
 
   afterChange() {
-    const { name, type, options, uncheckedValue, value } = this.props;
+    const { name, transformValue, type, options, uncheckedValue, value } = this.props;
     const { value: stateValue } = this.state;
     const { queueChange } = this.context;
 
@@ -389,6 +390,10 @@ export class Field extends React.Component {
         break;
       default:
         mappedValue = stateValue;
+    }
+
+    if(transformValue) {
+      mappedValue = transformValue(mappedValue)
     }
 
     queueChange({ [name]: mappedValue });
