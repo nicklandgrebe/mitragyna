@@ -29,7 +29,8 @@ export class Field extends React.Component {
       PropTypes.string,
       PropTypes.func,
     ]),
-    transformValue: PropTypes.func,
+    transformInputValue: PropTypes.func,
+    transformOutputValue: PropTypes.func,
     type: PropTypes.string.isRequired,
     uncheckedValue: PropTypes.oneOfType([
       PropTypes.object,
@@ -118,19 +119,20 @@ export class Field extends React.Component {
     const { resource: prevResource } = prevState
     const { resource } = this.context
 
-    const { lockValue } = this.props
+    const { lockValue, transformInputValue } = this.props
 
     if(prevResource !== resource) {
       this.setState({ resource })
     }
 
-    const value = this.valueFor(resource, this.props)
+    let value = this.valueFor(resource, this.props)
 
     if(
       (!prevResource && resource) ||
       (prevResource && !resource) ||
       (this.valueFor(prevResource, this.props) != value && !lockValue)
     ) {
+      if(transformInputValue) value = transformInputValue(value)
       this.setState({ value })
     }
   }
@@ -365,7 +367,7 @@ export class Field extends React.Component {
   }
 
   afterChange() {
-    const { name, transformValue, type, options, uncheckedValue, value } = this.props;
+    const { name, transformOutputValue, type, options, uncheckedValue, value } = this.props;
     const { value: stateValue } = this.state;
     const { queueChange } = this.context;
 
@@ -392,8 +394,8 @@ export class Field extends React.Component {
         mappedValue = stateValue;
     }
 
-    if(transformValue) {
-      mappedValue = transformValue(mappedValue)
+    if(transformOutputValue) {
+      mappedValue = transformOutputValue(mappedValue)
     }
 
     queueChange({ [name]: mappedValue });
