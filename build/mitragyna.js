@@ -380,14 +380,19 @@
     }, {
       key: 'componentWillMount',
       value: function componentWillMount() {
-        var type = this.props.type;
+        var _props3 = this.props,
+            transformInputValue = _props3.transformInputValue,
+            type = _props3.type;
         var resource = this.context.resource;
 
         // Set initial value to that of the resources
 
+        var value = this.valueFor(resource, this.props);
+        if (transformInputValue) value = transformInputValue(value);
+
         this.setState({
           resource: resource,
-          value: this.valueFor(resource, this.props)
+          value: value
         });
 
         switch (type) {
@@ -406,9 +411,9 @@
       value: function componentDidUpdate(prevProps, prevState) {
         var prevResource = prevState.resource;
         var resource = this.context.resource;
-        var _props3 = this.props,
-            lockValue = _props3.lockValue,
-            transformInputValue = _props3.transformInputValue;
+        var _props4 = this.props,
+            lockValue = _props4.lockValue,
+            transformInputValue = _props4.transformInputValue;
 
 
         if (prevResource !== resource) {
@@ -425,10 +430,10 @@
     }, {
       key: 'classNames',
       value: function classNames() {
-        var _props4 = this.props,
-            className = _props4.className,
-            invalidClassName = _props4.invalidClassName,
-            name = _props4.name;
+        var _props5 = this.props,
+            className = _props5.className,
+            invalidClassName = _props5.invalidClassName,
+            name = _props5.name;
         var resource = this.context.resource;
 
 
@@ -437,9 +442,9 @@
     }, {
       key: 'commonInputProps',
       value: function commonInputProps() {
-        var _props5 = this.props,
-            forwardRef = _props5.forwardRef,
-            name = _props5.name;
+        var _props6 = this.props,
+            forwardRef = _props6.forwardRef,
+            name = _props6.name;
 
 
         var props = {
@@ -477,9 +482,9 @@
     }, {
       key: 'customInputProps',
       value: function customInputProps() {
-        var _props6 = this.props,
-            component = _props6.component,
-            type = _props6.type;
+        var _props7 = this.props,
+            component = _props7.component,
+            type = _props7.type;
 
 
         var omittedProps;
@@ -566,9 +571,9 @@
     }, {
       key: 'renderRadioComponent',
       value: function renderRadioComponent() {
-        var _props7 = this.props,
-            component = _props7.component,
-            value = _props7.value;
+        var _props8 = this.props,
+            component = _props8.component,
+            value = _props8.value;
         var radioValue = this.context.radioValue;
 
 
@@ -595,11 +600,11 @@
     }, {
       key: 'renderSelectComponent',
       value: function renderSelectComponent() {
-        var _props8 = this.props,
-            component = _props8.component,
-            includeBlank = _props8.includeBlank,
-            options = _props8.options,
-            optionsLabel = _props8.optionsLabel;
+        var _props9 = this.props,
+            component = _props9.component,
+            includeBlank = _props9.includeBlank,
+            options = _props9.options,
+            optionsLabel = _props9.optionsLabel;
 
 
         var selectOptions = null;
@@ -649,10 +654,10 @@
       value: function handleChange(e) {
         e.persist();
 
-        var _props9 = this.props,
-            max = _props9.max,
-            min = _props9.min,
-            type = _props9.type;
+        var _props10 = this.props,
+            max = _props10.max,
+            min = _props10.min,
+            type = _props10.type;
         var changeRadio = this.context.changeRadio;
 
 
@@ -684,13 +689,13 @@
     }, {
       key: 'afterChange',
       value: function afterChange() {
-        var _props10 = this.props,
-            name = _props10.name,
-            transformOutputValue = _props10.transformOutputValue,
-            type = _props10.type,
-            options = _props10.options,
-            uncheckedValue = _props10.uncheckedValue,
-            value = _props10.value;
+        var _props11 = this.props,
+            name = _props11.name,
+            transformOutputValue = _props11.transformOutputValue,
+            type = _props11.type,
+            options = _props11.options,
+            uncheckedValue = _props11.uncheckedValue,
+            value = _props11.value;
         var stateValue = this.state.value;
         var queueChange = this.context.queueChange;
 
@@ -988,9 +993,9 @@
     }, {
       key: 'handleDelete',
       value: function handleDelete() {
-        var _props11 = this.props,
-            afterDelete = _props11.afterDelete,
-            afterError = _props11.afterError;
+        var _props12 = this.props,
+            afterDelete = _props12.afterDelete,
+            afterError = _props12.afterError;
         var resource = this.state.resource;
 
 
@@ -1005,9 +1010,9 @@
       value: function handleSubmit(e, callback) {
         if (e) e.preventDefault();
 
-        var _props12 = this.props,
-            onSubmit = _props12.onSubmit,
-            onInvalidSubmit = _props12.onInvalidSubmit;
+        var _props13 = this.props,
+            onSubmit = _props13.onSubmit,
+            onInvalidSubmit = _props13.onInvalidSubmit;
         var resource = this.state.resource;
 
 
@@ -1051,13 +1056,13 @@
         var _this8 = this;
 
         var isNestedResource = this.context.isNestedResource;
-        var _props13 = this.props,
-            afterError = _props13.afterError,
-            className = _props13.className,
-            component = _props13.component,
-            componentProps = _props13.componentProps,
-            componentRef = _props13.componentRef,
-            readOnly = _props13.readOnly;
+        var _props14 = this.props,
+            afterError = _props14.afterError,
+            className = _props14.className,
+            component = _props14.component,
+            componentProps = _props14.componentProps,
+            componentRef = _props14.componentRef,
+            readOnly = _props14.readOnly;
         var resource = this.state.resource;
 
 

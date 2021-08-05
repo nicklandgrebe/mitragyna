@@ -94,13 +94,16 @@ export class Field extends React.Component {
   }
 
   componentWillMount() {
-    const { type } = this.props;
+    const { transformInputValue, type } = this.props;
     const { resource } = this.context;
 
     // Set initial value to that of the resources
+    let value = this.valueFor(resource, this.props)
+    if(transformInputValue) value = transformInputValue(value)
+
     this.setState({
       resource,
-      value: this.valueFor(resource, this.props)
+      value,
     });
 
     switch(type) {
