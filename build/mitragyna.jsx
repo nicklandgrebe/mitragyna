@@ -151,7 +151,7 @@ export class Collection extends React.Component {
               )
             )).toArray()
           ) : (blankComponent != null &&
-            React.createElement(blankComponent)
+            React.createElement(blankComponent, { key: 'mg-collection-blank-component' })
           )
         }
       </React.Fragment>

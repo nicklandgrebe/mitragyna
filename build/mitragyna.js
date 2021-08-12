@@ -246,7 +246,7 @@
               key: keyFunc ? keyFunc(t) : indexOf,
               subject: t
             }, componentProps));
-          }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent)
+          }).toArray() : blankComponent != null && _react2.default.createElement(blankComponent, { key: 'mg-collection-blank-component' })
         );
 
         return _react2.default.createElement(wrapperComponent, _extends({
